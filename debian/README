@@ -1,0 +1,5 @@
+The Debian Package SwipePageStackWindow
+----------------------------
+
+Es un PageStackWindow en QML y un poco de Qt para Meego Harmattan (Nokia N9) que permite hacer un Swipe Right desde el borde y mostrar un menu (muy similar a como lo hace Blackberry 10) o hacer un Swipe Right desde el centro y simular un Back Button (como lo hace Sailfish OS).
+
