@@ -74,7 +74,7 @@ Window {
         visible: windowContent.x > 0
         Text {
             anchors.top: parent.top
-            anchors.margins: 20
+            anchors.margins: 40
             x: 10
             text: "MeeShop"
             font.bold: true
@@ -393,6 +393,51 @@ Window {
             }
         }
     ]
+    Rectangle{
+        color: "#111"
+        anchors {left: parent.left; bottom: parent.bottom; right: windowContent.left;}
+        visible: windowContent.x > 0
+        ListView{
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.bottom: parent.bottom
+            anchors.verticalCenter: parent.verticalCenter
+            anchors.verticalCenterOffset: -79
+            height: 79
+            boundsBehavior: Flickable.StopAtBounds
+            model: ListModel{
+            ListElement {
+                title: "About"; type:"about"; iconSource: "image://theme/icon-m-toolbar-view-menu-white"
+            }}
+            delegate: SwipeListDelegate{
+                titleWeight: Font.Light
+                titleSize: 28
+                width: parent.width - 5
+                titleColor: "#fff"
+                clip: true
+                backgroundPressed: "image://theme/meegotouch-list-background-selected-center"
+                onClicked: {
+                    window.hideMenu();
+                    aboutDialog.open()
+                }
+
+                Rectangle{
+                    anchors.top: parent.top
+                    width: parent.width
+                    height: 1
+                    color: "#2A2A2A"
+                }
+
+                Rectangle{
+                    anchors.bottom: parent.bottom
+                    width: parent.width
+                    height: 1
+                    color: "#2A2A2A"
+                }
+            }
+        }
+    }
+
 
     Component.onCompleted: {
         if (initialPage) pageStack.push(initialPage);
