@@ -30,4 +30,8 @@ SwipePageStackWindow {
     AppSheet {
         id: appSheet
     }
+
+    ProcessManager {
+        id: processManager
+    }
 }

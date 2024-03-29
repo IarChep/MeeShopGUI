@@ -15,9 +15,9 @@ Changes:
  .
    * Initial Release.
 Checksums-Sha1: 
- 3f0d23ff181e8f78776a0f736b18132b22d5a286 28548 swipepagestackwindow_0.0.1_armel.deb
+ 2d656efdbcb41aef01a89cd14ae4295ae71c9354 67476 swipepagestackwindow_0.0.1_armel.deb
 Checksums-Sha256: 
- 96d5167ec07337e3629b0ba3ad5095aa1d0e8243f621d0f4d8ca9a853694f94f 28548 swipepagestackwindow_0.0.1_armel.deb
+ d8215ccdff14df41a05053e0eb05cb1a02b3a2746a462e4c4512ddfbf3586a92 67476 swipepagestackwindow_0.0.1_armel.deb
 Files: 
- 39e259ada2587b197b13495267b7983a 28548 user/other optional swipepagestackwindow_0.0.1_armel.deb
+ 4e41f5ec6fed29d15c84cc3a30bdb433 67476 user/other optional swipepagestackwindow_0.0.1_armel.deb
 Maemo-Display-Name: SwipePageStackWindow

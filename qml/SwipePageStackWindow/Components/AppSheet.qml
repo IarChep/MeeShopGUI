@@ -4,10 +4,6 @@ import com.nokia.meego 1.0
 Sheet {
     property variant argList
 
-    InstallationManager {
-        id: im
-    }
-
     rejectButtonText: "Go back"
 
     content: Column {
@@ -85,8 +81,7 @@ Sheet {
                 text: "Install"
                 onClicked:  {
                     enabled = false
-                    im.test_install()
-                    installRect.installation_started()
+                    installRect.start_installation()
                 }
             }
 
@@ -97,6 +92,8 @@ Sheet {
     onStatusChanged: {
         if (status === DialogStatus.Opening) {
             installButt.enabled = true
+            processManager.reset()
+            installRect.height = 0
         }
     }
 }

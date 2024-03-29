@@ -35,7 +35,8 @@ SOURCES += main.cpp \
     qmlviewer.cpp \
     swipecontrol.cpp \
     information_processor.cpp \
-    MeeShopApplicationModel.cpp
+    MeeShopApplicationModel.cpp \
+    processmanager.cpp
 
 # Please do not modify the following two lines. Required for deployment.
 include(qmlapplicationviewer/qmlapplicationviewer.pri)
@@ -56,4 +57,5 @@ HEADERS += \
     info_storage.h \
     information_processor.h \
     MeeShopApplicationModel.h \
-    Gradienter.h
+    Gradienter.h \
+    processmanager.h
