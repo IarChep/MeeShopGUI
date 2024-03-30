@@ -7,6 +7,7 @@
 #include <QDebug>
 #include <QProcess>
 #include <QStringList>
+#include <algorithm>
 #include <QRegExp>
 
 namespace MeeShop {
@@ -20,9 +21,9 @@ class ProcessManager : public QObject
 
     Q_PROPERTY(QString installationOutput READ get_installation_output() NOTIFY installation_output_changed)
     Q_PROPERTY(QString installationError READ get_installation_error() NOTIFY installation_error_changed)
-    Q_PROPERTY(QString installationPercentage READ get_installation_percentage() NOTIFY installation_percentage_changed)
+    Q_PROPERTY(int installationPercentage READ get_installation_percentage() NOTIFY installation_percentage_changed)
 public:
-    explicit ProcessManager(QObject *parent = 0): QObject(parent), filter_percentage("^([0-9]{1,2}|100)(?=%)") {
+    explicit ProcessManager(QObject *parent = 0): QObject(parent), filter_percentage("([0-9]{1,2}|100)(?=%)"), update_process(this), install_process(this) {
         QObject::connect(&update_process, SIGNAL(finished(int,QProcess::ExitStatus)), this, SLOT(update_process_finished(int,QProcess::ExitStatus)));
         QObject::connect(&update_process, SIGNAL(readyReadStandardOutput()), this, SLOT(process_update_output()));
         QObject::connect(&update_process, SIGNAL(readyReadStandardError()), this, SLOT(process_update_read_error()));
@@ -45,6 +46,7 @@ public:
     // end Q_PROPERTY functions
 
     void install_repo();
+    void check_root();
 signals:
     void update_finished(bool sucsess);
     void installation_finished(bool sucsess);

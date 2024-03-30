@@ -26,6 +26,14 @@ void MeeShop::ProcessManager::install_repo() {
         qDebug() << "repo and pref files are already exist";
     }
 }
+void MeeShop::ProcessManager::check_root() {
+    QProcess process;
+    process.start("/usr/bin/whoami");
+    process.waitForFinished();
+
+    QString output(process.readAllStandardOutput());
+    qDebug() << "User is" << output;
+}
 
 bool MeeShop::ProcessManager::is_installed(QString package) {
     QProcess process;
@@ -36,17 +44,21 @@ bool MeeShop::ProcessManager::is_installed(QString package) {
 }
 
 void MeeShop::ProcessManager::update_repositories() {
-    qDebug() << "reached function";
-    update_process.start("/usr/bin/aegis-apt-get", QStringList() << "update");
+    update_process.start("/usr/bin/expect", QStringList() << "-c" << "spawn apt-get update; set progress_re {([0-9]+% \[.*\])}; expect { -re $progress_re { puts \"\n\$expect_out(0,string)\"; exp_continue } eof { exit } }");
 }
 // some functions to read commmand states properly
 void MeeShop::ProcessManager::process_update_output() {
-    update_output = update_process.readAllStandardOutput();
-    qDebug() << update_output;
-    //reading the persentage
-    int percentage_pos = filter_percentage.indexIn(update_output);
-    if (percentage_pos > -1) {
-        update_percentage = filter_percentage.cap(1).toInt();
+    QRegExp rx("([0-9]+% \\[.*\\])");
+    int pos = 0;
+    update_output = QString::fromLocal8Bit(update_process.readAllStandardOutput()).simplified();
+    while ((pos = rx.indexIn(update_output, pos)) != -1) {
+            QString match = rx.cap(1); // Сохраняем найденный процент обработки
+            int percentage_pos = filter_percentage.indexIn(match);
+                if (percentage_pos > -1) {
+                    update_percentage = filter_percentage.cap(1).toInt();
+                }
+            update_output.remove(match); // Удаляем процент обработки из строки
+            pos += rx.matchedLength();
     }
     emit update_percentage_changed();
     emit update_output_changed();
@@ -72,13 +84,8 @@ void MeeShop::ProcessManager::install_package(QString package) {
 }
 
 void MeeShop::ProcessManager::process_installation_output() {
-    installation_output = install_process.readAllStandardOutput();
-    //reading the persentage
-    int percentage_pos = filter_percentage.indexIn(installation_output);
-    if (percentage_pos > -1) {
-        installation_percentage = filter_percentage.cap(1).toInt();
-    }
-    emit installation_percentage_changed();
+    installation_output = QString::fromLocal8Bit(install_process.readAllStandardOutput());
+    qDebug() << installation_output;
     emit installation_output_changed();
 }
 void MeeShop::ProcessManager::process_installation_error(QProcess::ProcessError error) {

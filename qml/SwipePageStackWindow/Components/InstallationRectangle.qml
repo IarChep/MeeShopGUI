@@ -10,19 +10,22 @@ Rectangle {
     clip: true
 
     function start_installation() {
-        updateItem.visible = true
+        restore_style()
         openAnimation.start()
         processManager.update_repositories()
     }
+    function restore_style() {updateProgressBar.style = standartStyle; installProgressBar.style = standartStyle}
 
     Item {
         anchors.top: parent.top
         id: updateItem
         width: parent.width
-        height: childrenRect.height
+        height: 60
         Column {
+            width: 1
             anchors.horizontalCenter: parent.horizontalCenter
             ProgressBar {
+                x: -width/2
                 id: updateProgressBar
                 maximumValue: 100
                 minimumValue: 0
@@ -30,27 +33,29 @@ Rectangle {
                 value: processManager.updatePercentage
             }
             Text {
+                font.pixelSize: 20
                 anchors.horizontalCenter: parent.horizontalCenter
                 text: processManager.updateOutput === "" ? "Updating packages..." : processManager.updateOutput
             }
         }
     }
     Item {
-        anchors.top: updateInfo.bottom
+        anchors.top: updateItem.bottom
         id: installItem
         width: parent.width
-        height: childrenRect.height
+        height: 60
         visible: false
         Column {
             anchors.horizontalCenter: parent.horizontalCenter
             ProgressBar {
-                id: installationProgressBar
+                id: installProgressBar
                 maximumValue: 200
                 minimumValue: 0
                 width: 300
                 value: processManager.installationPercentage
             }
             Text {
+                font.pixelSize: 20
                 anchors.horizontalCenter: parent.horizontalCenter
                 text: processManager.installationOutput === "" ? "Installing application..." : processManager.installationOutput
             }
@@ -66,9 +71,9 @@ Rectangle {
     }
     Connections {
         target: processManager
-
         onUpdate_finished: {
             if (sucsess) {
+                updateProgressBar.value = 100
                 updateProgressBar.style = sucsessfulStyle;
                 installItem.visible = true
                 openAnimation.start()
@@ -82,12 +87,11 @@ Rectangle {
         }
         onInstallation_finished: {
             if (sucsess) {
-                installationProgressBar.value = 200
-                installationProgressBar.style = sucsessfulStyle
+                installProgressBar.value = 200
+                installProgressBar.style = sucsessfulStyle
                 installButt.text = "Installed!"
             } else {
-                installationProgressBar.style = errorStyle
-                installationErrorAnimtion.start()
+                installProgressBar.style = errorStyle
                 installButt.text = "Error!"
                 installButt.enabled = true
             }
@@ -116,7 +120,7 @@ Rectangle {
         target: installRect
         properties: "height"
         easing.type: Easing.OutQuad
-        to: installInfo.visible ? installRect.childrenRect.height : installRect.childrenRect.height / 2
+        to: installItem.visible ? installRect.childrenRect.height : installRect.childrenRect.height / 2
         duration: 260
 
     }
@@ -126,18 +130,5 @@ Rectangle {
         properties: "height"
         to: 0.0
         duration: 300
-    }
-    SequentialAnimation {
-        id: updateErrorAnimtion
-        NumberAnimation {target: updateProgressBar; to: 10; duration: 50}
-        NumberAnimation {target: updateProgressBar; to: -10; duration: 100}
-        NumberAnimation {target: updateProgressBar; to: 0; duration: 50}
-    }
-
-    SequentialAnimation {
-        id: installationErrorAnimtion
-        NumberAnimation {target: installationProgressBar; to: 10; duration: 50}
-        NumberAnimation {target: installationProgressBar; to: -10; duration: 100}
-        NumberAnimation {target: installationProgressBar; to: 0; duration: 50}
     }
 }

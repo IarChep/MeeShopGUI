@@ -12,6 +12,9 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
 {
     QScopedPointer<QApplication> app(createApplication(argc, argv));
 
+    MeeShop::ProcessManager pm;
+    pm.check_root();
+
     qmlRegisterType<MeeShop::information_processor>("IarChep.MeeShop", 1, 0, "MeeShopRepository");
     qmlRegisterType<MeeShop::MeeShopApplicationModel>("IarChep.MeeShop", 1, 0, "ApplicationModel");
     qmlRegisterType<MeeShop::Gradienter>("IarChep.MeeShop", 1, 0, "Gradienter");
