@@ -1,0 +1,21 @@
+<RCC>
+    <qresource prefix="/">
+        <file>qml/Pages/AppsPage.qml</file>
+        <file>qml/Pages/HomePage.qml</file>
+        <file>qml/Pages/RssPage.qml</file>
+        <file>qml/Components/AppDelegate.qml</file>
+        <file>qml/Components/AppSheet.qml</file>
+        <file>qml/Components/constants.js</file>
+        <file>qml/Components/Header.qml</file>
+        <file>qml/Components/IconBounding.svg</file>
+        <file>qml/Components/IconGradient.qml</file>
+        <file>qml/Components/InstallationManager.qml</file>
+        <file>qml/Components/InstallationRectangle.qml</file>
+        <file>qml/Components/rss-page-icon.png</file>
+        <file>qml/Components/SectionDelegate.qml</file>
+        <file>qml/Components/SwipeListDelegate.qml</file>
+        <file>qml/Components/SwipePageStackWindow.qml</file>
+        <file>qml/Components/UIConstants.js</file>
+        <file>qml/main.qml</file>
+    </qresource>
+</RCC>
