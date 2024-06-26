@@ -7,6 +7,8 @@ import "Components"
 SwipePageStackWindow {
     id: appWindow
 
+    property int savedPage: 1
+
     initialPage: homePage
 
     HomePage {
@@ -20,8 +22,8 @@ SwipePageStackWindow {
     }
 
 
-    MeeShopRepository {
-        id: mainRepo
+    MeeShopApi{
+        id: mainApi
     }
     Gradienter {
         id: gradienter

@@ -1,5 +1,6 @@
 import QtQuick 1.1
 import com.nokia.meego 1.0
+import IarChep.MeeShop 1.0
 
 Sheet {
     property variant argList
@@ -9,6 +10,7 @@ Sheet {
     content: Column {
         anchors.fill: parent
         Rectangle{
+            id: appRect
             width: parent.width
             height:200
             gradient: IconGradient {
@@ -17,9 +19,8 @@ Sheet {
             Row {
                 anchors.centerIn: parent
                 spacing: 15
-                Image {
+                NokiaShape {
                     id: bounding
-                    source: "IconBounding.svg"
                     width: 80
                     height: 80
                     Image {

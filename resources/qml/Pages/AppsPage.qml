@@ -7,27 +7,51 @@ Page {
     id: page
     orientationLock: PageOrientation.LockPortrait
 
+    property int lastPage: 0
     property string title : "<strong>Meeshop: <strong>All Apps"
     property int count: 0
+    property int category: 1
+    property string sort: "title"
 
-    tools: ToolBarLayout {
-            id: commonTools
-            visible: true
-            ButtonRow {
-                checkedButton: rightButton
-                TabButton {
-                    id: rightButton
-                    text: "MeeShop's repo"
-                }
-                TabButton {
-                    id: leftButton
-                    text: "OpenRepos"
-                }
+    CategorySelectDialog {id: categoryDialog}
+
+    Header {
+        id: header
+        clickable: true
+        onClicked: {
+            mainApi.getCategories()
+            categoryDialog.open()
+        }
+    }
+
+    ListView {
+        id: mainList
+        width: parent.width
+        anchors.top: header.bottom
+        height:  parent.height - header.height
+        model: mainApi.appModel
+
+        delegate: AppDelegate {
+            onClicked: {
+                appSheet.argList = [appName, appVer, appSize,appPkgName, "http://wunderwungiel.pl/MeeGo/openrepos/icons/" + appIcon]
+                appSheet.open()
             }
         }
 
-
-    Header {id: header}
+        section.property: "letter"
+        section.criteria: ViewSection.FullString
+        section.delegate: SectionDelegate {}
+        footer: PageSwitcher {
+            id: switcher
+            totalPages: mainApi.getPages(category)
+            anchors.horizontalCenter: parent.horizontalCenter
+            onPageChanged: {page.lastPage = currentPage-1; mainApi.getCategoryContent(page.category, currentPage-1, page.sort)}
+            Connections {
+                target: categoryDialog
+                onAccepted: switcher.currentPage = 1
+            }
+        }
+    }
 
     Connections{
         target: page.status === PageStatus.Active ? appWindow : null
@@ -40,7 +64,7 @@ Page {
         }
         onLeftSwipe: {
             if (count === 0) {
-               appWindow.pageStack.push(rssPage);
+                appWindow.pageStack.push(rssPage);
                 count = 1
             }
         }
@@ -52,6 +76,7 @@ Page {
     onStatusChanged: {
         if(status === PageStatus.Activating)
         {
+            mainApi.getCategoryContent(page.category, page.lastPage, page.sort)
             count = 0
             appWindow.menuModel.clear();
             appWindow.menuModel.append({title: "Home", type:"home", iconSource: "image://theme/icon-m-toolbar-home-white"});

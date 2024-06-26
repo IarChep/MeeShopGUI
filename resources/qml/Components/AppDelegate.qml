@@ -17,16 +17,16 @@ Rectangle {
         Image {
             id: icon
             anchors.verticalCenter: parent.verticalCenter
-            source: "http://wunderwungiel.pl/MeeGo/openrepos/icons/" + app_icon
+            source: "http://wunderwungiel.pl/MeeGo/openrepos/icons/" + appIcon
         }
         Column {
             Text {
-                text: app_name
+                text: appName
                 color: "black"
                 font.pixelSize: 25
             }
             Text {
-                text: "Size: " + app_size
+                text: "Size: " + appSize + " KB, Dev: " + appDev
                 color: "black"
                 font.pixelSize: 20
             }

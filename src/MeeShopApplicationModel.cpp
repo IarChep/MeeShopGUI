@@ -4,72 +4,62 @@ MeeShop::MeeShopApplicationModel::MeeShopApplicationModel(QObject *parent)
     : QAbstractListModel(parent)
 {    
     QHash<int, QByteArray> roles;
-    roles[AppNameRole] = "app_name";
-    roles[AppVerRole] = "app_ver";
-    roles[AppSizeRole] = "app_size";
-    roles[AppPkgNameRole] = "app_pkg_name";
-    roles[AppIconRole] = "app_icon";
-
-    roles[RssCountryNameRole] = "rss_country_name";
-    roles[RssCountryFileRole] = "rss_country_file";
-
-    roles[RssFeedNameRole] = "rss_feed_name";
-    roles[RssFeedUrlRole] = "rss_feed_url";
-
+    roles[AppNameRole] = "appName";
+    roles[AppVerRole] = "appVer";
+    roles[AppDevRole] = "appDev";
+    roles[AppSizeRole] = "appSize";
+    roles[AppPkgNameRole] = "appPkgName";
+    roles[AppIconRole] = "appIcon";
     roles[LetterRole] = "letter";
+
+    roles[ContentAmountRole] = "categoryAmount";
+    roles[ContentDirRole] = "categoryDir";
+    roles[ContentIdRole] = "categoryId";
+    roles[ContentNameRole] = "categoryName";
     setRoleNames(roles);
 }
 
 
-void MeeShop::MeeShopApplicationModel::addEntry(const MeeShop::info_storage &is)
+void MeeShop::MeeShopApplicationModel::setJson(const json &jsonDoc)
 {
     beginInsertRows(QModelIndex(), rowCount(), rowCount());
-    m_entries << is;
+    m_json = jsonDoc;
     endInsertRows();
 }
-
 int MeeShop::MeeShopApplicationModel::rowCount(const QModelIndex &parent) const {
-    return m_entries.count();
+    return m_json.size();
 }
 
 QVariant MeeShop::MeeShopApplicationModel::data(const QModelIndex &index, int role) const {
-    if (index.row() < 0 || index.row() > m_entries.count())
+    if (index.row() < 0 || index.row() > m_json.size())
         return QVariant();
 
-    const MeeShop::info_storage &is = m_entries[index.row()];
+    const json &jsonElem = m_json.at(index.row());
 
     switch (role) {
     case AppNameRole:
-        return is.app_name;
+        return QString::fromStdString(jsonElem["title"].get<std::string>());
     case AppVerRole:
-        return is.app_ver;
+        return QString::fromStdString(jsonElem["version"].get<std::string>());
     case AppSizeRole:
-        return is.app_size;
+        return jsonElem["size"].get<int>() / 1024;
+    case AppDevRole:
+        return QString::fromStdString(jsonElem["publisher"].get<std::string>());
     case AppPkgNameRole:
-        return is.app_pkg_name;
+        return QString::fromStdString(jsonElem["package"].get<std::string>());
     case AppIconRole:
-        return is.app_icon;
-
-    case RssCountryNameRole:
-        return is.rss_country_name;
-    case RssCountryFileRole:
-        return is.rss_country_file;
-
-    case RssFeedNameRole:
-        return is.rss_feed_name;
-    case RssFeedUrlRole:
-        return is.rss_feed_url;
-
+        return QString::fromStdString(jsonElem["img"].get<std::string>());
     case LetterRole:
-        return is.letter;
+        return QString(toupper(jsonElem["title"].get<std::string>()[0]));
+    case ContentAmountRole:
+        return jsonElem["amount"].get<int>();
+    case ContentDirRole:
+        return QString::fromStdString(jsonElem["directory"].get<std::string>());
+    case ContentIdRole:
+        return jsonElem["id"].get<int>();
+    case ContentNameRole:
+        return QString::fromStdString(jsonElem["name"].get<std::string>());
     }
     return QVariant();
 }
-void MeeShop::MeeShopApplicationModel::slice(int from, int to) {
-    if (!recover_entries.empty()) {
-        m_entries = recover_entries.mid(from, to-from+1);
-    } else {
-        recover_entries = m_entries;
-        m_entries = m_entries.mid(from, to-from+1);
-    }
-}
+
