@@ -1,0 +1,9 @@
+{
+    "version": 4,
+    "vendor": {
+        "conan": {}
+    },
+    "include": [
+        "../build-NewMSG-N9_Emulator-Debug/conan/build/Debug/generators/CMakePresets.json"
+    ]
+}

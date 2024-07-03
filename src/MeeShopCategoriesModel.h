@@ -39,8 +39,6 @@ private:
     json m_json;
 };
 }
-
-Q_DECLARE_METATYPE(MeeShop::MeeShopCategoriesModel*)
 #endif // MEESHOPMODEL_H
 
 

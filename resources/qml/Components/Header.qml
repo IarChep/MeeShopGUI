@@ -26,6 +26,15 @@ Rectangle{
             verticalAlignment: Text.AlignVCenter
             height: parent.height
         }
+        Image {
+            visible: clickable
+            anchors {
+                right: parent.right
+                rightMargin: 15
+                verticalCenter: parent.verticalCenter
+            }
+            source: "image://theme/meegotouch-combobox-indicator-inverted"
+        }
         MouseArea {
             id: mouseArea
             anchors.fill: parent

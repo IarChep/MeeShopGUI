@@ -21,11 +21,7 @@ public:
         AppPkgNameRole,
         AppIconRole,
         LetterRole,
-
-        ContentAmountRole,
-        ContentDirRole,
-        ContentIdRole,
-        ContentNameRole
+        DevLetterRole,
     };
 
     MeeShopApplicationModel(QObject *parent = 0);

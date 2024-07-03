@@ -4,6 +4,8 @@ import com.nokia.extras 1.1
 
 Rectangle {
     id: appdelegate
+
+    property bool higlightLetters: false
     signal clicked()
 
     width: parent.width
@@ -21,12 +23,12 @@ Rectangle {
         }
         Column {
             Text {
-                text: appName
+                text: appdelegate.higlightLetters === true && page.sort === "title" ? "<b>"+appName.charAt(0)+"</b>"+appName.slice(1) : appName
                 color: "black"
                 font.pixelSize: 25
             }
             Text {
-                text: "Size: " + appSize + " KB, Dev: " + appDev
+                text: appdelegate.higlightLetters === true && page.sort === "publisher" ? "Size: " + appSize + " KB, Dev: " + "<b>"+appDev.charAt(0)+"</b>"+appDev.slice(1) :  "Size: " + appSize + " KB, Dev: " +appDev
                 color: "black"
                 font.pixelSize: 20
             }

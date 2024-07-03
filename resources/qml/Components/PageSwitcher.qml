@@ -7,12 +7,14 @@ import IarChep.MeeShop 1.0
 Item {
     id: pageSwitcher
     width: 314
-    height: 100
+    height: 165
 
     property int currentPage: 1
     property int totalPages
     property int shift: 0
     signal pageChanged()
+
+    PageSelectionDialog {id: pageDialog}
 
     Column {
         spacing: 5
@@ -107,5 +109,10 @@ Item {
             text: "Total pages: " + pageSwitcher.totalPages
             anchors.horizontalCenter: parent.horizontalCenter
         }
+        Button {
+            text: "Switch to page"
+            onClicked: pageDialog.open()
+        }
     }
+    onCurrentPageChanged: pageDialog.selectedIndex = currentPage - 1
 }

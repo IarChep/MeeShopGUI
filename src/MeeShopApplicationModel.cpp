@@ -11,11 +11,7 @@ MeeShop::MeeShopApplicationModel::MeeShopApplicationModel(QObject *parent)
     roles[AppPkgNameRole] = "appPkgName";
     roles[AppIconRole] = "appIcon";
     roles[LetterRole] = "letter";
-
-    roles[ContentAmountRole] = "categoryAmount";
-    roles[ContentDirRole] = "categoryDir";
-    roles[ContentIdRole] = "categoryId";
-    roles[ContentNameRole] = "categoryName";
+    roles[DevLetterRole] = "devLetter";
     setRoleNames(roles);
 }
 
@@ -51,15 +47,10 @@ QVariant MeeShop::MeeShopApplicationModel::data(const QModelIndex &index, int ro
         return QString::fromStdString(jsonElem["img"].get<std::string>());
     case LetterRole:
         return QString(toupper(jsonElem["title"].get<std::string>()[0]));
-    case ContentAmountRole:
-        return jsonElem["amount"].get<int>();
-    case ContentDirRole:
-        return QString::fromStdString(jsonElem["directory"].get<std::string>());
-    case ContentIdRole:
-        return jsonElem["id"].get<int>();
-    case ContentNameRole:
-        return QString::fromStdString(jsonElem["name"].get<std::string>());
-    }
+    case DevLetterRole:
+        return QString(toupper(jsonElem["publisher"].get<std::string>()[0]));
+
     return QVariant();
+    }
 }
 

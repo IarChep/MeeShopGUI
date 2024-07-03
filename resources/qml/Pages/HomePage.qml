@@ -8,7 +8,7 @@ Page {
     id: page
     orientationLock: PageOrientation.LockPortrait
 
-    property string title: "<b>Meeshop:<b> Home"
+    property string title: "<b>Meeshop</b>: Home"
     property int count: 0
 
     Header {id: header}

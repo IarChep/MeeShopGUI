@@ -20,7 +20,7 @@ Component {
             onClicked:   {
                 selectedCatIndex = index
                 page.category = selectedCatIndex + 1
-                page.title = "<b>Meeshop: " + root.model.getCatName(selectedIndex) + "<b>"
+                page.title = "<b>Meeshop</b>: " + root.model.getCatName(selectedIndex)
                 accept()
             }
         }

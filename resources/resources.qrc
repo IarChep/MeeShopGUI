@@ -20,5 +20,6 @@
         <file>qml/Components/CategoryDelegate.qml</file>
         <file>qml/Components/SortByDelegate.qml</file>
         <file>images/headerImage.png</file>
+        <file>qml/Components/PageSelectionDialog.qml</file>
     </qresource>
 </RCC>

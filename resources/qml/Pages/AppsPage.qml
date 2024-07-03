@@ -8,7 +8,7 @@ Page {
     orientationLock: PageOrientation.LockPortrait
 
     property int lastPage: 0
-    property string title : "<strong>Meeshop: <strong>All Apps"
+    property string title : "<b>Meeshop</b>: Apps"
     property int count: 0
     property int category: 1
     property string sort: "title"
@@ -32,13 +32,14 @@ Page {
         model: mainApi.appModel
 
         delegate: AppDelegate {
+            higlightLetters: true
             onClicked: {
                 appSheet.argList = [appName, appVer, appSize,appPkgName, "http://wunderwungiel.pl/MeeGo/openrepos/icons/" + appIcon]
                 appSheet.open()
             }
         }
 
-        section.property: "letter"
+        section.property: page.sort === "publisher" ? "devLetter" : "letter"
         section.criteria: ViewSection.FullString
         section.delegate: SectionDelegate {}
         footer: PageSwitcher {
@@ -46,9 +47,14 @@ Page {
             totalPages: mainApi.getPages(category)
             anchors.horizontalCenter: parent.horizontalCenter
             onPageChanged: {page.lastPage = currentPage-1; mainApi.getCategoryContent(page.category, currentPage-1, page.sort)}
+            Component.onCompleted: pagesModel.setPages(totalPages)
             Connections {
                 target: categoryDialog
-                onAccepted: switcher.currentPage = 1
+                onAccepted: {
+                    switcher.currentPage = 1
+                    pagesModel.setPages(switcher.totalPages)
+
+                }
             }
         }
     }
