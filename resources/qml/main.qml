@@ -21,16 +21,20 @@ SwipePageStackWindow {
         id: rssPage
     }
 
+    OpenReposApi {
+        id: api
 
-    MeeShopApi{
-        id: mainApi
     }
+
     Gradienter {
         id: gradienter
     }
 
     AppSheet {
         id: appSheet
+    }
+    CategoriesSheet {
+        id: catSheet
     }
 
     ProcessManager {

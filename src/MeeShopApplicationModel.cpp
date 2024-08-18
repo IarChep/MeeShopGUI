@@ -49,8 +49,7 @@ QVariant MeeShop::MeeShopApplicationModel::data(const QModelIndex &index, int ro
         return QString(toupper(jsonElem["title"].get<std::string>()[0]));
     case DevLetterRole:
         return QString(toupper(jsonElem["publisher"].get<std::string>()[0]));
-
-    return QVariant();
     }
+    return QVariant();
 }
 

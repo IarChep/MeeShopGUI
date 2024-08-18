@@ -1,57 +1,53 @@
 import QtQuick 1.1
-import com.nokia.meego 1.1
-import "UIConstants.js" as UI
 
-Component {
-    id: defaultDelegate
+Rectangle {
+    id: catDelegate
 
-    Item {
-        id: delegateItem
-        property bool selected: index == selectedCatIndex;
+    signal clicked()
 
-        height: root.platformStyle.itemHeight
-        anchors.left: parent.left
+    width: parent.width
+    height: 90
+    color: mouseArea.pressed === true ? "#bbbcbe" : "#e0e1e2"
+
+    Image {
+        visible: index === 0
+        anchors.top: parent.top
         anchors.right: parent.right
+        anchors.left: parent.left
+        source: "image://theme/meegotouch-groupheader" + (theme.inverted ? "-inverted" : "") + "-background"
+    }
 
-        MouseArea {
-            id: delegateMouseArea
-            anchors.fill: parent;
-            onPressed: selectedIndex = index;
-            onClicked:   {
-                selectedCatIndex = index
-                page.category = selectedCatIndex + 1
-                page.title = "<b>Meeshop</b>: " + root.model.getCatName(selectedIndex)
-                accept()
-            }
+    Text {
+        anchors {
+            left: parent.left
+            leftMargin: 15
+            verticalCenter: parent.verticalCenter
         }
+        font.pixelSize: 26
+        font.bold: true
+        text: categoryName + " (" + categoryAmount + " apps)"
+    }
 
-
-        Rectangle {
-            id: backgroundRect
-            anchors.fill: parent
-            color: delegateItem.selected ? root.platformStyle.itemSelectedBackgroundColor : root.platformStyle.itemBackgroundColor
+    Image {
+        visible: categoryKids > 1
+        anchors {
+            right: parent.right
+            rightMargin: 15
+            verticalCenter: parent.verticalCenter
         }
+        source: "image://theme/meegotouch-combobox-indicator"
+    }
 
-        BorderImage {
-            id: background
-            anchors.fill: parent
-            border { left: UI.CORNER_MARGINS; top: UI.CORNER_MARGINS; right: UI.CORNER_MARGINS; bottom: UI.CORNER_MARGINS }
-            source: delegateMouseArea.pressed ? root.platformStyle.itemPressedBackground :
-                    delegateItem.selected ? root.platformStyle.itemSelectedBackground :
-                    root.platformStyle.itemBackground
-        }
+    Image {
+        anchors.bottom: parent.bottom
+        anchors.right: parent.right
+        anchors.left: parent.left
+        source: "image://theme/meegotouch-groupheader" + (theme.inverted ? "-inverted" : "") + "-background"
+    }
 
-        Text {
-            id: itemText
-            elide: Text.ElideRight
-            color: delegateItem.selected ? root.platformStyle.itemSelectedTextColor : root.platformStyle.itemTextColor
-            anchors.verticalCenter: delegateItem.verticalCenter
-            anchors.left: parent.left
-            anchors.right: parent.right
-            anchors.leftMargin: root.platformStyle.itemLeftMargin
-            anchors.rightMargin: root.platformStyle.itemRightMargin
-            text: categoryName + ". Apps amount: " + categoryAmount
-            font: root.platformStyle.itemFont
-        }
+    MouseArea {
+        id: mouseArea
+        anchors.fill: parent
+        onClicked: catDelegate.clicked()
     }
 }

@@ -7,6 +7,7 @@
 
 #include "swipecontrol.h"
 
+#include "openreposapi.h"
 #include "meeshopapi.h"
 #include "MeeShopApplicationModel.h"
 #include "MeeShopCategoriesModel.h"
@@ -20,7 +21,9 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
 {
     QScopedPointer<QApplication> app(new QApplication(argc, argv));
 
-    qmlRegisterType<MeeShop::MeeShopApi>("IarChep.MeeShop", 1, 0, "MeeShopApi");
+    qDebug() << "gay";
+
+    qmlRegisterType<MeeShop::OpenReposApi>("IarChep.MeeShop", 1, 0, "OpenReposApi");
     qmlRegisterType<MeeShop::MeeShopApplicationModel>("IarChep.MeeShop", 1, 0, "ApplicationModel");
     qmlRegisterType<MeeShop::MeeShopCategoriesModel>("IarChep.MeeShop", 1, 0, "CategoriesModel");
     qmlRegisterType<MeeShop::MeeShopPagesModel>("IarChep.MeeShop", 1, 0, "PagesModel");

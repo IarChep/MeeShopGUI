@@ -14,6 +14,30 @@ Item {
     property int shift: 0
     signal pageChanged()
 
+    function setPage(page) {
+        switch (currentPage < page) {
+        case true:
+            currentPage = page
+            shift -= 180 * (Math.floor(currentPage / 4)) + shift
+            if(currentPage > 2 && currentPage - Math.abs(shift)/45 < 3) {
+                shift += 45 * (3 - (currentPage - Math.abs(shift)/45))
+            } else if (currentPage - Math.abs(shift)/45 === 0) {
+                shift -= 45
+            }
+            break
+        case false:
+            currentPage = page
+            shift -= shift + (180 * (Math.floor(currentPage / 4)))
+            if(currentPage > 2 && currentPage - Math.abs(shift)/45 > 2) {
+                shift -= 45 * ((currentPage - Math.abs(shift)/45) - 2)
+            } else if (currentPage - Math.abs(shift)/45 === 0) {
+                shift += 90
+            }
+            break
+        }
+        pageChanged()
+    }
+
     PageSelectionDialog {id: pageDialog}
 
     Column {
