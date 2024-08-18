@@ -1,9 +1,10 @@
 import QtQuick 1.1
-import com.nokia.meego 1.0
+import com.nokia.meego 1.1
 import IarChep.MeeShop 1.0
 
 Sheet {
-
+    id: catSheet
+    property int selectedIndex: 1
     title: Text {
         text: "Choose a category"
         font.pixelSize: 26
@@ -27,7 +28,6 @@ Sheet {
             onClicked: close()
         }
         Component.onCompleted: {
-            acceptButton.clicked.connect(accepted)
             rejectButton.clicked.connect(rejected)
         }
     }
@@ -35,11 +35,15 @@ Sheet {
     content: ListView {
         model: api.categoryModel
         anchors.fill:  parent
-        delegate:
-            CategoryDelegate{
+        delegate: CategoryDelegate{
             onClicked: {
-                api.categoryModel.toggleKids(categoryName)
+                if (hasKids) {
+                    api.categoryModel.toggleKids(categoryName)
+                } else {
+                    console.log("Selected category with no kids: " + categoryName)
+                }
             }
+            onSelectButtonClicked: console.log("Selected category with kids: " + categoryName)
         }
     }
 }
