@@ -3,7 +3,7 @@ import com.nokia.meego 1.0
 import IarChep.MeeShop 1.0
 
 Sheet {
-    property variant argList
+    property int appId;
 
     rejectButtonText: "Go back"
 
@@ -14,7 +14,7 @@ Sheet {
             width: parent.width
             height:200
             gradient: IconGradient {
-                iconColors: gradienter.get_gradient_colors(argList[4])
+                iconColors: gradienter.get_gradient_colors(argList[3])
             }
             Row {
                 anchors.centerIn: parent

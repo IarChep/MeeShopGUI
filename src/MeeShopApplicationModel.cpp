@@ -7,11 +7,8 @@ MeeShop::MeeShopApplicationModel::MeeShopApplicationModel(QObject *parent)
     roles[AppNameRole] = "appName";
     roles[AppVerRole] = "appVer";
     roles[AppDevRole] = "appDev";
-    roles[AppSizeRole] = "appSize";
-    roles[AppPkgNameRole] = "appPkgName";
+    roles[AppIdRole] = "appId";
     roles[AppIconRole] = "appIcon";
-    roles[LetterRole] = "letter";
-    roles[DevLetterRole] = "devLetter";
     setRoleNames(roles);
 }
 
@@ -20,6 +17,7 @@ void MeeShop::MeeShopApplicationModel::setJson(const json &jsonDoc)
 {
     beginInsertRows(QModelIndex(), rowCount(), rowCount());
     m_json = jsonDoc;
+    qDebug() << QString::fromStdString(jsonDoc.dump(4)) << jsonDoc.size();
     endInsertRows();
 }
 int MeeShop::MeeShopApplicationModel::rowCount(const QModelIndex &parent) const {
@@ -34,21 +32,25 @@ QVariant MeeShop::MeeShopApplicationModel::data(const QModelIndex &index, int ro
 
     switch (role) {
     case AppNameRole:
-        return QString::fromStdString(jsonElem["title"].get<std::string>());
+        if (jsonElem.contains("title"))
+            return QString::fromStdString(jsonElem["title"].get<std::string>());
+        break;
     case AppVerRole:
-        return QString::fromStdString(jsonElem["version"].get<std::string>());
-    case AppSizeRole:
-        return jsonElem["size"].get<int>() / 1024;
+        if (jsonElem.contains("version"))
+            return QString::fromStdString(jsonElem["version"].get<std::string>());
     case AppDevRole:
-        return QString::fromStdString(jsonElem["publisher"].get<std::string>());
-    case AppPkgNameRole:
-        return QString::fromStdString(jsonElem["package"].get<std::string>());
+        if (jsonElem.contains("user"))
+            return QString::fromStdString(jsonElem["user"]["name"].get<std::string>());
+        break;
+    case AppIdRole:
+        if (jsonElem.contains("appid"))
+            return jsonElem["appid"].get<int>();
+        break;
     case AppIconRole:
-        return QString::fromStdString(jsonElem["img"].get<std::string>());
-    case LetterRole:
-        return QString(toupper(jsonElem["title"].get<std::string>()[0]));
-    case DevLetterRole:
-        return QString(toupper(jsonElem["publisher"].get<std::string>()[0]));
+        if (jsonElem.contains("icon")) {
+            return QString::fromStdString(jsonElem["icon"]["url"].get<std::string>());
+        }
+        break;
     }
     return QVariant();
 }

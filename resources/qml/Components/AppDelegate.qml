@@ -17,18 +17,20 @@ Rectangle {
         anchors.verticalCenter: parent.verticalCenter
         spacing: 15
         Image {
+            width: 65
+            height: width
             id: icon
             anchors.verticalCenter: parent.verticalCenter
-            source: "http://wunderwungiel.pl/MeeGo/openrepos/icons/" + appIcon
+            source: appIcon
         }
         Column {
             Text {
-                text: appdelegate.higlightLetters === true && page.sort === "title" ? "<b>"+appName.charAt(0)+"</b>"+appName.slice(1) : appName
+                text: appName
                 color: "black"
                 font.pixelSize: 25
             }
             Text {
-                text: appdelegate.higlightLetters === true && page.sort === "publisher" ? "Size: " + appSize + " KB, Dev: " + "<b>"+appDev.charAt(0)+"</b>"+appDev.slice(1) :  "Size: " + appSize + " KB, Dev: " +appDev
+                text:  "By: " +appDev
                 color: "black"
                 font.pixelSize: 20
             }

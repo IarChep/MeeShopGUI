@@ -5,8 +5,8 @@ find_package(Qt4 4.7.4 COMPONENTS QtCore QtGui QtDeclarative QtNetwork QtSvg REQ
 find_package(X11 REQUIRED)
 find_package(nlohmann_json REQUIRED)
 
-set(QML_IMPORT_PATH "/home/user/QtSDK/Simulator/Qt/gcc/imports/" CACHE STRING "")
-set(CMAKE_EXE_LINKER_FLAGS "-static-libstdc++ -Wl,--dynamic-linker,/lib/ld-linux.so.3")
+#set(QML_IMPORT_PATH "/home/user/QtSDK/Simulator/Qt/gcc/imports/" CACHE STRING "")
+#set(CMAKE_EXE_LINKER_FLAGS "-static-libstdc++ -Wl,--dynamic-linker,/lib/ld-linux.so.3")
 add_compile_options(-gdwarf-2)
 
 file(GLOB src_files "src/*.cpp")

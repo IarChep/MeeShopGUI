@@ -12,7 +12,7 @@ Page {
     property string categoryName: "Apps"
     property string title : "<b>Meeshop</b>: " + categoryName
     property int count: 0
-    property int category: 1
+    property int category: 257
     property string sort: "title"
     property bool isSearch: false
     property string query: ""
@@ -59,11 +59,12 @@ Page {
         anchors.top: searchRect.bottom
         anchors.topMargin: 5
         height:  parent.height - header.height - searchRect.height - anchors.topMargin
+        model: api.appModel
 
         delegate: AppDelegate {
             higlightLetters: true
             onClicked: {
-                appSheet.argList = [appName, appVer, appSize,appPkgName, "http://wunderwungiel.pl/MeeGo/openrepos/icons/" + appIcon]
+                appSheet.appId = appId
                 appSheet.open()
             }
         }
@@ -124,7 +125,8 @@ Page {
     onStatusChanged: {
         if(status === PageStatus.Activating)
         {
-            count = 0
+            count = 0;
+            api.getCategoryApps(page.category);
             appWindow.menuModel.clear();
             appWindow.menuModel.append({title: "Home", type:"home", iconSource: "image://theme/icon-m-toolbar-home-white"});
             appWindow.menuModel.append({title: "Apps", type:"apps", iconSource: "image://theme/icon-m-toolbar-application-white", highlited: true});

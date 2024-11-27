@@ -65,7 +65,7 @@ QVariant MeeShop::MeeShopCategoriesModel::getCategoryData(const json &category, 
         break;
     case CategoryKidsRole:
         if (category.contains("childrens")) {
-            return category["childrens"].get<json>().size();
+            return static_cast<qulonglong>(category["childrens"].get<json>().size());
         }
         break;
     case CategoryIdRole:

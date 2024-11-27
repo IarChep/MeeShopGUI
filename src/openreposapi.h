@@ -19,12 +19,12 @@ class OpenReposApi : public QObject
     Q_PROPERTY(MeeShop::MeeShopApplicationModel* appModel READ getModel NOTIFY modelChanged)
     Q_PROPERTY(MeeShop::MeeShopCategoriesModel* categoryModel READ getCatModel NOTIFY catModelChanged)
 public:
-    explicit OpenReposApi(QObject *parent = nullptr) : QObject{parent}, categoryModel(new MeeShop::MeeShopCategoriesModel(this)) {
+    explicit OpenReposApi(QObject *parent = nullptr) : QObject{parent}, appModel(new MeeShop::MeeShopApplicationModel(this)), categoryModel(new MeeShop::MeeShopCategoriesModel(this)), baseUrl("http://openrepos.wunderwungiel.pl/api/v1") {
         request.setRawHeader("Accept-Langueage", "en");
         request.setRawHeader("Warehouse-Platform", "Harmattan");
-        QSslConfiguration config = request.sslConfiguration();
-        config.setPeerVerifyMode(QSslSocket::VerifyNone);
-        request.setSslConfiguration(config);
+        //QSslConfiguration config = request.sslConfiguration();
+        //config.setPeerVerifyMode(QSslSocket::VerifyNone);
+        //request.setSslConfiguration(config);
     }
 
     MeeShop::MeeShopApplicationModel* getModel() {return appModel;}
@@ -33,9 +33,7 @@ public:
     Q_INVOKABLE void getCategories();
     Q_INVOKABLE void getCategoryApps(int cat_id);
     Q_INVOKABLE void search(QString query);
-    Q_INVOKABLE void getAppInfo(int
-
-                                app_id);
+    Q_INVOKABLE void getAppInfo(int app_id);
     Q_INVOKABLE void getAppComments(int app_id);
 
 private slots:
@@ -45,6 +43,8 @@ signals:
     void modelChanged();
     void catModelChanged();
 private:
+    QString baseUrl;
+    QString currentRoute;
     QNetworkAccessManager manager;
     QNetworkRequest request;
     QScopedPointer<QNetworkReply> reply;

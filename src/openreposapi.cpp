@@ -3,31 +3,40 @@
 namespace MeeShop {
 
 void OpenReposApi::getCategories() {
-    request.setUrl(QUrl("https://openrepos.net/api/v1/categories"));
+    currentRoute = "/categories"; // Set the current route for categories
+    request.setUrl(QUrl(baseUrl + currentRoute));
     reply.reset(manager.get(request));
 
     QObject::connect(reply.data(), SIGNAL(finished()), this, SLOT(process_reply()));
 }
+
 void OpenReposApi::getCategoryApps(int cat_id) {
-    request.setUrl(QUrl("https://openrepos.net/api/v1/categories/" + QString::number(cat_id) + "/apps"));
+    currentRoute = "/categories/" + QString::number(cat_id) + "/apps?page=1"; // Set route for category apps
+    request.setUrl(QUrl(baseUrl + currentRoute));
     reply.reset(manager.get(request));
 
     QObject::connect(reply.data(), SIGNAL(finished()), this, SLOT(process_reply()));
 }
+
 void OpenReposApi::search(QString query) {
-    request.setUrl(QUrl("https://openrepos.net/api/v1/search/apps?keys=" + query));
+    currentRoute = "/search/apps?keys=" + query; // Set route for search
+    request.setUrl(QUrl(baseUrl + currentRoute));
     reply.reset(manager.get(request));
 
     QObject::connect(reply.data(), SIGNAL(finished()), this, SLOT(process_reply()));
 }
+
 void OpenReposApi::getAppInfo(int app_id) {
-    request.setUrl(QUrl("https://openrepos.net/api/v1/apps/" + QString::number(app_id)));
+    currentRoute = "/apps/" + QString::number(app_id); // Set route for app info
+    request.setUrl(QUrl(baseUrl + currentRoute));
     reply.reset(manager.get(request));
 
     QObject::connect(reply.data(), SIGNAL(finished()), this, SLOT(process_reply()));
 }
+
 void OpenReposApi::getAppComments(int app_id) {
-    request.setUrl(QUrl("https://openrepos.net/api/v1/apps/" + QString::number(app_id) + "/comments"));
+    currentRoute = "/apps/" + QString::number(app_id) + "/comments"; // Set route for app comments
+    request.setUrl(QUrl(baseUrl + currentRoute));
     reply.reset(manager.get(request));
 
     QObject::connect(reply.data(), SIGNAL(finished()), this, SLOT(process_reply()));
@@ -39,10 +48,15 @@ void OpenReposApi::process_reply() {
         std::string dataStr(data.constData(), data.size());
         if (nlohmann::json::accept(dataStr)) {
             nlohmann::json json_obj = nlohmann::json::parse(dataStr);
-            categoryModel->setJson(json_obj);
-            emit catModelChanged();
+            if (currentRoute.startsWith("/categories/")) {
+                appModel->setJson(json_obj);
+                emit modelChanged();
+            } else if (currentRoute.startsWith("/categories")) {
+                categoryModel->setJson(json_obj);
+                emit catModelChanged();
+            }
+            emit finished(true);
         }
-        emit finished(true);
     } else {
         emit finished(false);
     }

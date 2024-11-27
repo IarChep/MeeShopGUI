@@ -16,12 +16,9 @@ public:
     enum EntryRoles {
         AppNameRole = Qt::UserRole + 1,
         AppVerRole,
-        AppSizeRole,
         AppDevRole,
-        AppPkgNameRole,
+        AppIdRole,
         AppIconRole,
-        LetterRole,
-        DevLetterRole,
     };
 
     MeeShopApplicationModel(QObject *parent = 0);

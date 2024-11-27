@@ -8,7 +8,6 @@
 #include "swipecontrol.h"
 
 #include "openreposapi.h"
-#include "meeshopapi.h"
 #include "MeeShopApplicationModel.h"
 #include "MeeShopCategoriesModel.h"
 #include "MeeShopPagesModel.h"
