@@ -9,7 +9,7 @@
 #include <nlohmann/json.hpp>
 #include "MeeShopApplicationModel.h"
 #include "MeeShopCategoriesModel.h"
-#include "iostream"
+#include <unordered_map>
 
 namespace MeeShop {
 
@@ -43,11 +43,11 @@ signals:
     void modelChanged();
     void catModelChanged();
 private:
+    std::unordered_map<QNetworkReply*, QString> routeMap;
     QString baseUrl;
-    QString currentRoute;
     QNetworkAccessManager manager;
     QNetworkRequest request;
-    QScopedPointer<QNetworkReply> reply;
+    QScopedPointer<QNetworkReply> m_reply;
     MeeShop::MeeShopApplicationModel* appModel;
     MeeShop::MeeShopCategoriesModel* categoryModel;
 };
