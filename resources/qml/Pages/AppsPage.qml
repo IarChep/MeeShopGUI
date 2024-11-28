@@ -8,15 +8,13 @@ Page {
     id: page
     orientationLock: PageOrientation.LockPortrait
 
-    property int lastPage: 0
+    property int page: 0
     property string categoryName: "Apps"
     property string title : "<b>Meeshop</b>: " + categoryName
     property int count: 0
-    property int category: 257
-    property string sort: "title"
+    property int category: 1
     property bool isSearch: false
     property string query: ""
-    signal resetPages()
 
     Header {
         id: header
@@ -68,38 +66,62 @@ Page {
                 appSheet.open()
             }
         }
-
-        footer: PageSwitcher {
-            id: switcher
-            totalPages: {
-                if(!page.isSearch) {
-                                mainApi.getPages(category)
-                }
-                mainApi.getSearchPages(page.query, page.category)
-            }
-            anchors.horizontalCenter: parent.horizontalCenter
-            onPageChanged: {
-                page.lastPage = currentPage-1
-                if(!isSearch)
-                {
-                    mainApi.getCategoryContent(page.category, currentPage-1, page.sort)
-                    break
-                }
-                mainApi.getSearchPages(page.query, page.category)
-            }
-            Component.onCompleted: pagesModel.setPages(totalPages)
-            Connections {
-                target: categoryDialog
-                onAccepted: {
-                    switcher.currentPage = 1
-                    pagesModel.setPages(switcher.totalPages)
-                }
-            }
-            Connections {
-                target: page
-                onResetPages: switcher.currentPage = 1
+        property bool endReached: false
+        property bool startReached: true
+        onFlickEnded: {
+            if (!endReached && mainList.contentY >= mainList.contentHeight - mainList.height) {
+                console.log("end of the list view")
+                page.page += 1
+                api.getCategoryApps(page.category, page.page)
+                endReached = true
+            } if (!startReached && mainList.contentY <= 0 && page.page != 0) {
+                console.log("start of the list view")
+                page.page -= 1
+                api.getCategoryApps(page.category, page.page)
+                startReached = true
             }
         }
+        onContentHeightChanged: {
+            console.log("model updated")
+            endReached = false
+            startReached = mainList.contentY <= 0
+        }
+        Component.onCompleted: {
+            endReached = false
+            startReached = true
+        }
+
+//        footer: PageSwitcher {
+//            id: switcher
+//            totalPages: {
+//                if(!page.isSearch) {
+//                                mainApi.getPages(category)
+//                }
+//                mainApi.getSearchPages(page.query, page.category)
+//            }
+//            anchors.horizontalCenter: parent.horizontalCenter
+//            onPageChanged: {
+//                page.lastPage = currentPage-1
+//                if(!isSearch)
+//                {
+//                    mainApi.getCategoryContent(page.category, currentPage-1, page.sort)
+//                    break
+//                }
+//                mainApi.getSearchPages(page.query, page.category)
+//            }
+//            Component.onCompleted: pagesModel.setPages(totalPages)
+//            Connections {
+//                target: categoryDialog
+//                onAccepted: {
+//                    switcher.currentPage = 1
+//                    pagesModel.setPages(switcher.totalPages)
+//                }
+//            }
+//            Connections {
+//                target: page
+//                onResetPages: switcher.currentPage = 1
+//            }
+//        }
     }
 
     Connections{
@@ -126,7 +148,7 @@ Page {
         if(status === PageStatus.Activating)
         {
             count = 0;
-            api.getCategoryApps(page.category);
+            api.getCategoryApps(page.category, page.page);
             appWindow.menuModel.clear();
             appWindow.menuModel.append({title: "Home", type:"home", iconSource: "image://theme/icon-m-toolbar-home-white"});
             appWindow.menuModel.append({title: "Apps", type:"apps", iconSource: "image://theme/icon-m-toolbar-application-white", highlited: true});

@@ -23,14 +23,15 @@ public:
 
     MeeShopApplicationModel(QObject *parent = 0);
 
-    void setJson(const json &jsonDoc);
+    void pushPageBack(const json &jsonDoc);
+    void pushPageFront(const json &jsonDoc);
 
     int rowCount(const QModelIndex & parent = QModelIndex()) const;
 
     QVariant data(const QModelIndex & index, int role = Qt::DisplayRole) const;
 
 private:
-    json m_json;
+    QList<json> m_jsonList;
 };
 }
 

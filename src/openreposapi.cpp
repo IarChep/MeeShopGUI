@@ -10,8 +10,8 @@ void OpenReposApi::getCategories() {
     QObject::connect(reply.data(), SIGNAL(finished()), this, SLOT(process_reply()));
 }
 
-void OpenReposApi::getCategoryApps(int cat_id) {
-    currentRoute = "/categories/" + QString::number(cat_id) + "/apps?page=1"; // Set route for category apps
+void OpenReposApi::getCategoryApps(int cat_id, int page) {
+    currentRoute = "/categories/" + QString::number(cat_id) + "/apps?page=" + QString::number(page); // Set route for category apps
     request.setUrl(QUrl(baseUrl + currentRoute));
     reply.reset(manager.get(request));
 
@@ -49,7 +49,7 @@ void OpenReposApi::process_reply() {
         if (nlohmann::json::accept(dataStr)) {
             nlohmann::json json_obj = nlohmann::json::parse(dataStr);
             if (currentRoute.startsWith("/categories/")) {
-                appModel->setJson(json_obj);
+                appModel->pushPageBack(json_obj);
                 emit modelChanged();
             } else if (currentRoute.startsWith("/categories")) {
                 categoryModel->setJson(json_obj);

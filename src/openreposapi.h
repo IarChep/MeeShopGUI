@@ -31,7 +31,7 @@ public:
     MeeShop::MeeShopCategoriesModel* getCatModel() {return categoryModel;}
 
     Q_INVOKABLE void getCategories();
-    Q_INVOKABLE void getCategoryApps(int cat_id);
+    Q_INVOKABLE void getCategoryApps(int cat_id, int page);
     Q_INVOKABLE void search(QString query);
     Q_INVOKABLE void getAppInfo(int app_id);
     Q_INVOKABLE void getAppComments(int app_id);
