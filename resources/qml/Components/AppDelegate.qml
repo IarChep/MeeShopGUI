@@ -21,7 +21,7 @@ Rectangle {
             height: width
             id: icon
             anchors.verticalCenter: parent.verticalCenter
-            source: appIcon
+            source: appIcon === undefined  ? "" : appIcon
         }
         Column {
             Text {

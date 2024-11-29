@@ -66,25 +66,29 @@ Page {
                 appSheet.open()
             }
         }
+        Connections {
+            target: api.appModel
+            onPageAdded: {
+                console.log("model updated", mainList.contentY, mainList.contentHeight)
+                mainList.endReached = false
+                mainList.startReached = false
+            }
+        }
+
         property bool endReached: false
         property bool startReached: true
-        onFlickEnded: {
+        onContentYChanged: {
             if (!endReached && mainList.contentY >= mainList.contentHeight - mainList.height) {
                 console.log("end of the list view")
                 page.page += 1
                 api.getCategoryApps(page.category, page.page)
                 endReached = true
-            } if (!startReached && mainList.contentY <= 0 && page.page != 0) {
+            } if (!startReached && mainList.contentY <= 0 && page.page != 0 && page.page - 3 > 0) {
                 console.log("start of the list view")
-                page.page -= 1
-                api.getCategoryApps(page.category, page.page)
+                //page.page -= 1
+                //api.getCategoryApps(page.category, page.page)
                 startReached = true
             }
-        }
-        onContentHeightChanged: {
-            console.log("model updated")
-            endReached = false
-            startReached = mainList.contentY <= 0
         }
         Component.onCompleted: {
             endReached = false

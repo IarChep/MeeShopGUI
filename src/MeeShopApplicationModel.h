@@ -30,6 +30,8 @@ public:
 
     QVariant data(const QModelIndex & index, int role = Qt::DisplayRole) const;
 
+signals:
+    void pageAdded();
 private:
     QList<json> m_jsonList;
 };

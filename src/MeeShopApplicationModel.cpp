@@ -16,14 +16,15 @@ void MeeShop::MeeShopApplicationModel::pushPageBack(const json &jsonDoc)
 {
     beginInsertRows(QModelIndex(), rowCount(), rowCount() + jsonDoc.size() - 1);
     m_jsonList.append(jsonDoc);
+    endInsertRows();
     if (m_jsonList.size() > 3) {
         beginRemoveRows(QModelIndex(), 0, m_jsonList.first().size() - 1);
-        qDebug() << "removing json";
+        qDebug() << "Model: removing first json";
         m_jsonList.removeFirst();
-        qDebug() << "Now size is:" << m_jsonList.size();
         endRemoveRows();
     }
-    endInsertRows();
+    emit pageAdded();
+
 }
 
 void MeeShop::MeeShopApplicationModel::pushPageFront(const json &jsonDoc)
