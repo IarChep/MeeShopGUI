@@ -12,31 +12,29 @@ MeeShop::MeeShopApplicationModel::MeeShopApplicationModel(QObject *parent)
     setRoleNames(roles);
 }
 
-void MeeShop::MeeShopApplicationModel::pushPageBack(const json &jsonDoc)
+void MeeShop::MeeShopApplicationModel::pushPageBack(const json &page)
 {
-    beginInsertRows(QModelIndex(), rowCount(), rowCount() + jsonDoc.size() - 1);
-    m_jsonList.append(jsonDoc);
-    endInsertRows();
+    int diff = 0;
+    beginResetModel();
+    m_jsonList.append(page);
     if (m_jsonList.size() > 3) {
-        beginRemoveRows(QModelIndex(), 0, m_jsonList.first().size() - 1);
-        qDebug() << "Model: removing first json";
+        diff = m_jsonList.first().size();
         m_jsonList.removeFirst();
-        endRemoveRows();
     }
-    emit pageAdded();
+    endResetModel();
+    emit pageBackAdded(diff);
 
 }
 
-void MeeShop::MeeShopApplicationModel::pushPageFront(const json &jsonDoc)
+void MeeShop::MeeShopApplicationModel::pushPageFront(const json &page)
 {
-    beginInsertRows(QModelIndex(), 0, jsonDoc.size() - 1);
-    m_jsonList.prepend(jsonDoc);
+    beginResetModel();
+    m_jsonList.prepend(page);
     if (m_jsonList.size() > 3) {
-        beginRemoveRows(QModelIndex(), rowCount() - m_jsonList.last().size(), rowCount() - 1);
         m_jsonList.removeLast();
-        endRemoveRows();
     }
-    endInsertRows();
+    endResetModel();
+    emit pageFrontAdded(page.size());
 }
 
 int MeeShop::MeeShopApplicationModel::rowCount(const QModelIndex &parent) const {

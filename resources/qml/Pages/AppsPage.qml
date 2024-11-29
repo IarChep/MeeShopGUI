@@ -59,6 +59,10 @@ Page {
         height:  parent.height - header.height - searchRect.height - anchors.topMargin
         model: api.appModel
 
+        property bool endReached: false
+        property bool startReached: true
+        property int oldContentY;
+
         delegate: AppDelegate {
             higlightLetters: true
             onClicked: {
@@ -68,23 +72,23 @@ Page {
         }
         Connections {
             target: api.appModel
-            onPageAdded: {
-                console.log("model updated", mainList.contentY, mainList.contentHeight)
+            onPageBackAdded: {
                 mainList.endReached = false
                 mainList.startReached = false
+                mainList.contentY = mainList.oldContentY - (frontDeletedSize * 90)
             }
         }
 
-        property bool endReached: false
-        property bool startReached: true
-        onContentYChanged: {
+
+        onFlickEnded: {
             if (!endReached && mainList.contentY >= mainList.contentHeight - mainList.height) {
-                console.log("end of the list view")
+                console.log("end")
+                mainList.oldContentY = mainList.contentY
                 page.page += 1
                 api.getCategoryApps(page.category, page.page)
                 endReached = true
-            } if (!startReached && mainList.contentY <= 0 && page.page != 0 && page.page - 3 > 0) {
-                console.log("start of the list view")
+            } if (!startReached && mainList.contentY <= 0 && page.page - 3 > 0) {
+                console.log("start")
                 //page.page -= 1
                 //api.getCategoryApps(page.category, page.page)
                 startReached = true
