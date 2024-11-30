@@ -9,7 +9,6 @@
 #include <nlohmann/json.hpp>
 #include "MeeShopApplicationModel.h"
 #include "MeeShopCategoriesModel.h"
-#include <unordered_map>
 
 namespace MeeShop {
 
@@ -19,7 +18,11 @@ class OpenReposApi : public QObject
     Q_PROPERTY(MeeShop::MeeShopApplicationModel* appModel READ getModel NOTIFY modelChanged)
     Q_PROPERTY(MeeShop::MeeShopCategoriesModel* categoryModel READ getCatModel NOTIFY catModelChanged)
 public:
-    explicit OpenReposApi(QObject *parent = nullptr) : QObject{parent}, appModel(new MeeShop::MeeShopApplicationModel(this)), categoryModel(new MeeShop::MeeShopCategoriesModel(this)), baseUrl("http://openrepos.wunderwungiel.pl/api/v1") {
+    explicit OpenReposApi(QObject *parent = nullptr) : QObject{parent},
+        lastPage(0),
+        appModel(new MeeShop::MeeShopApplicationModel(this)), categoryModel(new MeeShop::MeeShopCategoriesModel(this)),
+        baseUrl("http://openrepos.wunderwungiel.pl/api/v1")
+    {
         request.setRawHeader("Accept-Langueage", "en");
         request.setRawHeader("Warehouse-Platform", "Harmattan");
         //QSslConfiguration config = request.sslConfiguration();
@@ -37,17 +40,22 @@ public:
     Q_INVOKABLE void getAppComments(int app_id);
 
 private slots:
-    void process_reply();
+    void process_categories();
+    void process_apps();
 signals:
     void finished(bool sucsess);
     void modelChanged();
     void catModelChanged();
 private:
-    std::unordered_map<QNetworkReply*, QString> routeMap;
+    nlohmann::json parseJson(QByteArray data);
+
+    int lastPage;
+    int currentPage;
+
     QString baseUrl;
     QNetworkAccessManager manager;
     QNetworkRequest request;
-    QScopedPointer<QNetworkReply> m_reply;
+
     MeeShop::MeeShopApplicationModel* appModel;
     MeeShop::MeeShopCategoriesModel* categoryModel;
 };

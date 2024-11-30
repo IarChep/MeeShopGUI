@@ -70,66 +70,41 @@ Page {
                 appSheet.open()
             }
         }
+
         Connections {
             target: api.appModel
             onPageBackAdded: {
-                mainList.endReached = false
-                mainList.startReached = false
+                mainList.endReached = false;
+                mainList.startReached = false;
                 mainList.contentY = mainList.oldContentY - (frontDeletedSize * 90)
+            }
+            onPageFrontAdded: {
+                mainList.endReached = false;
+                mainList.startReached = false;
+                mainList.contentY = frontAddedSize * 90;
             }
         }
 
 
         onFlickEnded: {
             if (!endReached && mainList.contentY >= mainList.contentHeight - mainList.height) {
-                console.log("end")
+                endReached = true
                 mainList.oldContentY = mainList.contentY
+                console.log("end")
                 page.page += 1
                 api.getCategoryApps(page.category, page.page)
-                endReached = true
-            } if (!startReached && mainList.contentY <= 0 && page.page - 3 > 0) {
-                console.log("start")
-                //page.page -= 1
-                //api.getCategoryApps(page.category, page.page)
+            } if (!startReached && mainList.contentY - 210<= 0 && page.page - 3 >= 0) {
                 startReached = true
+                mainList.oldContentY = mainList.contentY
+                console.log("start")
+                page.page -= 1
+                api.getCategoryApps(page.category, page.page-2)
             }
         }
         Component.onCompleted: {
             endReached = false
             startReached = true
         }
-
-//        footer: PageSwitcher {
-//            id: switcher
-//            totalPages: {
-//                if(!page.isSearch) {
-//                                mainApi.getPages(category)
-//                }
-//                mainApi.getSearchPages(page.query, page.category)
-//            }
-//            anchors.horizontalCenter: parent.horizontalCenter
-//            onPageChanged: {
-//                page.lastPage = currentPage-1
-//                if(!isSearch)
-//                {
-//                    mainApi.getCategoryContent(page.category, currentPage-1, page.sort)
-//                    break
-//                }
-//                mainApi.getSearchPages(page.query, page.category)
-//            }
-//            Component.onCompleted: pagesModel.setPages(totalPages)
-//            Connections {
-//                target: categoryDialog
-//                onAccepted: {
-//                    switcher.currentPage = 1
-//                    pagesModel.setPages(switcher.totalPages)
-//                }
-//            }
-//            Connections {
-//                target: page
-//                onResetPages: switcher.currentPage = 1
-//            }
-//        }
     }
 
     Connections{

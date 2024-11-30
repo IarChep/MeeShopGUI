@@ -21,7 +21,7 @@ Rectangle {
             height: width
             id: icon
             anchors.verticalCenter: parent.verticalCenter
-            source: appIcon === undefined  ? "" : appIcon
+            source: appIcon === undefined  ? "image://theme/icon-m-content-ovi-store-inverse" : appIcon
         }
         Column {
             Text {

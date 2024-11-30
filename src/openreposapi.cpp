@@ -7,16 +7,15 @@ void OpenReposApi::getCategories() {
     request.setUrl(QUrl(baseUrl + currentRoute));
     QNetworkReply *reply = manager.get(request);
 
-    QObject::connect(reply, SIGNAL(finished()), this, SLOT(process_reply()));
-    routeMap[reply] = currentRoute;
+    QObject::connect(reply, SIGNAL(finished()), this, SLOT(process_categories()));
 }
 
 void OpenReposApi::getCategoryApps(int cat_id, int page) {
+    currentPage = page;
     QString currentRoute = "/categories/" + QString::number(cat_id) + "/apps?page=" + QString::number(page); // Set route for category apps
     request.setUrl(QUrl(baseUrl + currentRoute));
     QNetworkReply *reply = manager.get(request);
-    connect(reply, SIGNAL(finished()), this, SLOT(process_reply()));
-    routeMap[reply] = currentRoute;
+    connect(reply, SIGNAL(finished()), this, SLOT(process_apps()));
 }
 
 void OpenReposApi::search(QString query) {
@@ -24,8 +23,7 @@ void OpenReposApi::search(QString query) {
     request.setUrl(QUrl(baseUrl + currentRoute));
     QNetworkReply *reply = manager.get(request);
 
-    QObject::connect(reply, SIGNAL(finished()), this, SLOT(process_reply()));
-    routeMap[reply] = currentRoute;
+    //QObject::connect(reply, SIGNAL(finished()), this, SLOT(process_reply()));
 }
 
 void OpenReposApi::getAppInfo(int app_id) {
@@ -33,39 +31,50 @@ void OpenReposApi::getAppInfo(int app_id) {
     request.setUrl(QUrl(baseUrl + currentRoute));
     QNetworkReply *reply = manager.get(request);
 
-    QObject::connect(reply, SIGNAL(finished()), this, SLOT(process_reply()));
-    routeMap[reply] = currentRoute;
+    //QObject::connect(reply, SIGNAL(finished()), this, SLOT(process_reply()));
 }
 
 void OpenReposApi::getAppComments(int app_id) {
     QString currentRoute = "/apps/" + QString::number(app_id) + "/comments"; // Set route for app comments
     request.setUrl(QUrl(baseUrl + currentRoute));
     QNetworkReply *reply = manager.get(request);
-    QObject::connect(reply, SIGNAL(finished()), this, SLOT(process_reply()));
-    routeMap[reply] = currentRoute;
+    //QObject::connect(reply, SIGNAL(finished()), this, SLOT(process_reply()));
 }
 
-void OpenReposApi::process_reply() {
+nlohmann::json OpenReposApi::parseJson(QByteArray data) {
+    std::string dataStr(data.constData(), data.size());
+    if (nlohmann::json::accept(dataStr)) {
+        return nlohmann::json::parse(dataStr);
+    } else {
+        return {};
+    }
+}
+void OpenReposApi::process_apps() {
     QNetworkReply *reply = qobject_cast<QNetworkReply*>(sender());
-    QString currentRoute = routeMap.at(reply);
     if (reply->error() == QNetworkReply::NoError) {
-        QByteArray data = reply->readAll();
-        std::string dataStr(data.constData(), data.size());
-        if (nlohmann::json::accept(dataStr)) {
-            nlohmann::json json_obj = nlohmann::json::parse(dataStr);
-            if (currentRoute.startsWith("/categories/")) {
-                appModel->pushPageBack(json_obj);
-                emit modelChanged();
-            } else if (currentRoute == "/categories") {
-                categoryModel->setJson(json_obj);
-                emit catModelChanged();
-            }
-            emit finished(true);
-        }
+        nlohmann::json jsonObj = parseJson(reply->readAll());
+        if (currentPage >= lastPage)
+            appModel->pushPageBack(jsonObj);
+        else
+            appModel->pushPageFront(jsonObj);
+        lastPage = currentPage;
+        emit modelChanged();
+        emit finished(true);
     } else {
         emit finished(false);
     }
-    routeMap.erase(reply);
+    reply->deleteLater();
+}
+void OpenReposApi::process_categories() {
+    QNetworkReply *reply = qobject_cast<QNetworkReply*>(sender());
+    if (reply->error() == QNetworkReply::NoError) {
+        nlohmann::json jsonObj = parseJson(reply->readAll());
+        categoryModel->setJson(jsonObj);
+        emit catModelChanged();
+        emit finished(true);
+    } else {
+        emit finished(false);
+    }
     reply->deleteLater();
 }
 }

@@ -41,8 +41,4 @@ SwipePageStackWindow {
         id: processManager
     }
 
-    PagesModel {
-        id: pagesModel
-    }
-
 }
