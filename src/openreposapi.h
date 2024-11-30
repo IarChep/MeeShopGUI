@@ -5,22 +5,24 @@
 #include <QNetworkAccessManager>
 #include <QNetworkRequest>
 #include <QNetworkReply>
-#include <QSslConfiguration>
+#include <QEventLoop>
 #include <nlohmann/json.hpp>
 #include "MeeShopApplicationModel.h"
 #include "MeeShopCategoriesModel.h"
+#include "applicationinfo.h"
 
 namespace MeeShop {
 
 class OpenReposApi : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(MeeShop::MeeShopApplicationModel* appModel READ getModel NOTIFY modelChanged)
+    Q_PROPERTY(MeeShop::MeeShopApplicationModel* appModel READ getAppModel NOTIFY modelChanged)
     Q_PROPERTY(MeeShop::MeeShopCategoriesModel* categoryModel READ getCatModel NOTIFY catModelChanged)
+    Q_PROPERTY(MeeShop::ApplicationInfo* appInfo READ getAppInfo NOTIFY appInfoChanged)
 public:
     explicit OpenReposApi(QObject *parent = nullptr) : QObject{parent},
         lastPage(0),
-        appModel(new MeeShop::MeeShopApplicationModel(this)), categoryModel(new MeeShop::MeeShopCategoriesModel(this)),
+        appModel(new MeeShop::MeeShopApplicationModel(this)), categoryModel(new MeeShop::MeeShopCategoriesModel(this)), appInfo(new MeeShop::ApplicationInfo(this)),
         baseUrl("http://openrepos.wunderwungiel.pl/api/v1")
     {
         request.setRawHeader("Accept-Langueage", "en");
@@ -30,13 +32,15 @@ public:
         //request.setSslConfiguration(config);
     }
 
-    MeeShop::MeeShopApplicationModel* getModel() {return appModel;}
+    MeeShop::MeeShopApplicationModel* getAppModel() {return appModel;}
     MeeShop::MeeShopCategoriesModel* getCatModel() {return categoryModel;}
+    MeeShop::ApplicationInfo* getAppInfo() {return appInfo;}
+
 
     Q_INVOKABLE void getCategories();
     Q_INVOKABLE void getCategoryApps(int cat_id, int page);
     Q_INVOKABLE void search(QString query);
-    Q_INVOKABLE void getAppInfo(int app_id);
+    Q_INVOKABLE void fetchAppInfo(int app_id);
     Q_INVOKABLE void getAppComments(int app_id);
 
 private slots:
@@ -46,6 +50,7 @@ signals:
     void finished(bool sucsess);
     void modelChanged();
     void catModelChanged();
+    void appInfoChanged();
 private:
     nlohmann::json parseJson(QByteArray data);
 
@@ -58,6 +63,7 @@ private:
 
     MeeShop::MeeShopApplicationModel* appModel;
     MeeShop::MeeShopCategoriesModel* categoryModel;
+    MeeShop::ApplicationInfo* appInfo;
 };
 
 } // namespace MeeShop

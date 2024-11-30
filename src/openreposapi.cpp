@@ -26,12 +26,23 @@ void OpenReposApi::search(QString query) {
     //QObject::connect(reply, SIGNAL(finished()), this, SLOT(process_reply()));
 }
 
-void OpenReposApi::getAppInfo(int app_id) {
+void OpenReposApi::fetchAppInfo(int app_id) {
+    QEventLoop loop;
     QString currentRoute = "/apps/" + QString::number(app_id); // Set route for app info
     request.setUrl(QUrl(baseUrl + currentRoute));
     QNetworkReply *reply = manager.get(request);
 
-    //QObject::connect(reply, SIGNAL(finished()), this, SLOT(process_reply()));
+    QObject::connect(reply, SIGNAL(finished()), &loop, SLOT(quit()));
+    loop.exec();
+
+    if (reply->error() == QNetworkReply::NoError) {
+        nlohmann::json jsonObj = parseJson(reply->readAll());
+        appInfo->setJson(jsonObj);
+        qDebug() << "changed appInfo";
+        emit appInfoChanged();
+    } else {
+        qDebug() << "something is failed!";
+    }
 }
 
 void OpenReposApi::getAppComments(int app_id) {

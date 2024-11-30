@@ -1,5 +1,6 @@
 #ifndef MEESHOPAPPSMODEL_H
 #define MEESHOPAPPSMODEL_H
+
 #include <QAbstractListModel>
 #include <nlohmann/json.hpp>
 #include <QList>

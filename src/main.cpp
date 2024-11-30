@@ -13,6 +13,7 @@
 #include "Gradienter.h"
 #include "processmanager.h"
 #include "nokiashape.h"
+#include "applicationinfo.h"
 
 
 Q_DECL_EXPORT int main(int argc, char *argv[])
@@ -25,6 +26,8 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
     qmlRegisterType<MeeShop::Gradienter>("IarChep.MeeShop", 1, 0, "Gradienter");
     qmlRegisterType<MeeShop::ProcessManager>("IarChep.MeeShop", 1, 0, "ProcessManager");
     qmlRegisterType<MeeShop::NokiaShape>("IarChep.MeeShop", 1, 0, "NokiaShape");
+    qmlRegisterUncreatableType<MeeShop::ApplicationInfo>("IarChep.MeeShop", 1, 0, "ApplicationInfo", "ApplicationInfo is a read-only property!");
+    qRegisterMetaType<MeeShop::ApplicationInfo*>();
     qRegisterMetaType<MeeShop::MeeShopApplicationModel*>();
 
     QScopedPointer<QDeclarativeView> viewer(new QDeclarativeView);

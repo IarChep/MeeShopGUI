@@ -42,4 +42,5 @@ Rectangle {
         anchors.fill: parent
         onClicked: appdelegate.clicked()
     }
+
 }

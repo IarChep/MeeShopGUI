@@ -24,5 +24,6 @@
         <file>qml/Components/SelectionHandles.js</file>
         <file>qml/Components/TextAreaHelper.js</file>
         <file>qml/Components/CategoriesSheet.qml</file>
+        <file>qml/Components/Waiter.qml</file>
     </qresource>
 </RCC>
