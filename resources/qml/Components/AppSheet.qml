@@ -20,10 +20,11 @@ Sheet {
                 gradient: IconGradient {
                     iconColors: gradienter.get_gradient_colors(appInfo.icon)
                 }
-                Row {
+                Column {
                     anchors.centerIn: parent
                     spacing: 15
                     NokiaShape {
+                        anchors.horizontalCenter: parent.horizontalCenter
                         id: bounding
                         width: 80
                         height: 80
@@ -36,11 +37,11 @@ Sheet {
                         }
                     }
                     Text {
+                        anchors.horizontalCenter: parent.horizontalCenter
                         text: appInfo.title
                         color: "white"
                         font.pixelSize: 25
                         font.bold: true
-                        anchors.verticalCenter: parent.verticalCenter
                     }
                 }
             }
