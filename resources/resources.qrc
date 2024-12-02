@@ -25,5 +25,6 @@
         <file>qml/Components/TextAreaHelper.js</file>
         <file>qml/Components/CategoriesSheet.qml</file>
         <file>qml/Components/Waiter.qml</file>
+        <file>qml/Components/TextCollapsible.qml</file>
     </qresource>
 </RCC>

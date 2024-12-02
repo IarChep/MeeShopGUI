@@ -17,7 +17,7 @@ Sheet {
             id: flickable
             property int oldContentY: 0
             anchors.fill: parent
-            contentHeight: appRect.height + rec2.height + 100
+            contentHeight: appRect.height + appContent.height + 100
             boundsBehavior: Flickable.StopAtBounds
 
             Rectangle{
@@ -54,11 +54,35 @@ Sheet {
             }
 
             Rectangle {
-                id: rec2
+                id: appContent
                 y: 300
                 color: "red"
-                height: 800
                 width: parent.width
+                height: __header.height + __description.height
+                Column {
+                    id: __column
+                    anchors.fill: parent
+                    spacing: 15
+                    Text {
+                        id: __header
+                        text: "Description:"
+                        font.pixelSize: 22
+                        font.bold: true
+                    }
+                    TextCollapsible {
+                        id: __description
+                        anchors {
+                            right: parent.right
+                            left: parent.left
+                        }
+                        font.pixelSize: 20
+                        wrapMode: Text.WordWrap
+                        text: appInfo.description !== undefined ? appInfo.description + "<br>" : ""
+                        onTextChanged: console.log(appContent.height)
+                    }
+                }
+
+
             }
 
             onContentYChanged: {
