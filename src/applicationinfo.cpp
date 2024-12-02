@@ -23,18 +23,18 @@ QString ApplicationInfo::title() {
     }
 }
 QString ApplicationInfo::publisher() {
-    if(m_appJson.contains("packages"))
-        return QString::fromStdString(m_appJson["packages"]["harmattan"].get<std::string>());
-    else if(m_appJson.contains("package"))
-        return QString::fromStdString(m_appJson["package"]["name"].get<std::string>());
+    if(m_appJson.contains("user"))
+        return QString::fromStdString(m_appJson["user"]["name"].get<std::string>());
 }
 QString ApplicationInfo::description() {
     if(m_appJson.contains("body"))
         return QString::fromStdString(m_appJson["body"].get<std::string>());
 }
 QString ApplicationInfo::package() {
-    if(m_appJson.contains("body"))
-        return QString::fromStdString(m_appJson["body"].get<std::string>());
+    if(m_appJson.contains("packages"))
+        return QString::fromStdString(m_appJson["packages"]["harmattan"].get<std::string>());
+    else if(m_appJson.contains("package"))
+        return QString::fromStdString(m_appJson["package"]["name"].get<std::string>());
 }
 QString ApplicationInfo::downloadsCount() {
     if(m_appJson.contains("downloads"))
