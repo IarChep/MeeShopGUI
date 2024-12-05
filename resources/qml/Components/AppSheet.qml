@@ -12,53 +12,53 @@ Sheet {
     content: Item {
         anchors.fill: parent
 
+        Rectangle{
+            id: appPreviewRect
+            width: parent.width
+            height:200
+            gradient: IconGradient {
+                iconColors: gradienter.get_gradient_colors(appInfo.icon)
+            }
+            Column {
+                anchors.centerIn: parent
+                spacing: 15
+                NokiaShape {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    id: bounding
+                    width: 80
+                    height: 80
+                    Image {
+                        id: icon
+                        width: 64
+                        height: 64
+                        source: appInfo.icon
+                        anchors.centerIn: parent
+                    }
+                }
+                Text {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    text: appInfo.title
+                    color: "white"
+                    font.pixelSize: 25
+                    font.bold: true
+                }
+            }
+        }
 
         Flickable {
             id: flickable
             property int oldContentY: 0
-            anchors.fill: parent
-            contentHeight: appRect.height + appContent.height + 100
+            y: appPreviewRect.height + appRect.height
+            width: parent.width
+            height: parent.height -  appRect.height -appPreviewRect.height
+            contentHeight: appContent.height
             boundsBehavior: Flickable.StopAtBounds
-
-            Rectangle{
-                id: appPreviewRect
-                width: parent.width
-                height:200
-                gradient: IconGradient {
-                    iconColors: gradienter.get_gradient_colors(appInfo.icon)
-                }
-                Column {
-                    anchors.centerIn: parent
-                    spacing: 15
-                    NokiaShape {
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        id: bounding
-                        width: 80
-                        height: 80
-                        Image {
-                            id: icon
-                            width: 64
-                            height: 64
-                            source: appInfo.icon
-                            anchors.centerIn: parent
-                        }
-                    }
-                    Text {
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        text: appInfo.title
-                        color: "white"
-                        font.pixelSize: 25
-                        font.bold: true
-                    }
-                }
-            }
 
             Rectangle {
                 id: appContent
-                y: 300
                 color: "red"
                 width: parent.width
-                height: __header.height + __description.height
+                height: 800
                 Column {
                     id: __column
                     anchors.fill: parent
@@ -86,7 +86,7 @@ Sheet {
             }
 
             onContentYChanged: {
-                appPreviewRect.y += (contentY - oldContentY) * 0.5;
+                appPreviewRect.y -= (contentY - oldContentY) * 0.5;
                 if (contentY < appPreviewRect.height) {
                     appRect.y -= (contentY - oldContentY)
                     appRect.y = Math.min(200, appRect.y)
