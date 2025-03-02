@@ -1,0 +1,45 @@
+#ifndef MEESHOPAPPSMODEL_H
+#define MEESHOPAPPSMODEL_H
+
+#include <QAbstractListModel>
+#include <nlohmann/json.hpp>
+#include <QList>
+#include <algorithm>
+#include <QDebug>
+
+using json = nlohmann::json;
+
+namespace MeeShop {
+class MeeShopApplicationModel : public QAbstractListModel
+{
+    Q_OBJECT
+public:
+    enum EntryRoles {
+        AppNameRole = Qt::UserRole + 1,
+        AppVerRole,
+        AppDevRole,
+        AppIdRole,
+        AppIconRole,
+    };
+
+    MeeShopApplicationModel(QObject *parent = 0);
+
+    void pushPageBack(const json &jsonDoc);
+    void pushPageFront(const json &jsonDoc);
+
+    int rowCount(const QModelIndex & parent = QModelIndex()) const;
+
+    QVariant data(const QModelIndex & index, int role = Qt::DisplayRole) const;
+
+signals:
+    void pageBackAdded(int frontDeletedSize);
+    void pageFrontAdded(int frontAddedSize);
+private:
+    QList<json> m_jsonList;
+};
+}
+
+Q_DECLARE_METATYPE(MeeShop::MeeShopApplicationModel*)
+#endif // MEESHOPMODEL_H
+
+

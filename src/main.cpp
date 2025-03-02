@@ -5,15 +5,15 @@
 #include <QDeclarativeEngine>
 #include <QDeclarativeView>
 
-#include "swipecontrol.h"
+#include "tools/swipecontrol.h"
 
-#include "openreposapi.h"
-#include "MeeShopApplicationModel.h"
-#include "MeeShopCategoriesModel.h"
-#include "Gradienter.h"
-#include "processmanager.h"
-#include "nokiashape.h"
-#include "applicationinfo.h"
+#include "tools/openreposapi.h"
+#include "models/MeeShopApplicationModel.h"
+#include "models/MeeShopCategoriesModel.h"
+#include "qml_elements/Gradienter.h"
+#include "tools/PackageManager.h"
+#include "qml_elements/nokiashape.h"
+#include "structs/applicationinfo.h"
 
 
 Q_DECL_EXPORT int main(int argc, char *argv[])
@@ -24,7 +24,7 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
     qmlRegisterType<MeeShop::MeeShopApplicationModel>("IarChep.MeeShop", 1, 0, "ApplicationModel");
     qmlRegisterType<MeeShop::MeeShopCategoriesModel>("IarChep.MeeShop", 1, 0, "CategoriesModel");
     qmlRegisterType<MeeShop::Gradienter>("IarChep.MeeShop", 1, 0, "Gradienter");
-    qmlRegisterType<MeeShop::ProcessManager>("IarChep.MeeShop", 1, 0, "ProcessManager");
+    qmlRegisterType<MeeShop::PackageManager>("IarChep.MeeShop", 1, 0, "PackageManager");
     qmlRegisterType<MeeShop::NokiaShape>("IarChep.MeeShop", 1, 0, "NokiaShape");
     qmlRegisterUncreatableType<MeeShop::ApplicationInfo>("IarChep.MeeShop", 1, 0, "ApplicationInfo", "ApplicationInfo is a read-only property!");
     qRegisterMetaType<MeeShop::ApplicationInfo*>();
