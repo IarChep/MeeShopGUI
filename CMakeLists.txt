@@ -13,14 +13,14 @@ if(BUILD_N9)
     set(CMAKE_EXE_LINKER_FLAGS "-static-libstdc++ -Wl,--dynamic-linker,/lib/ld-linux.so.3")
 endif()
 
-file(GLOB src_files "src/*.cpp")
-file(GLOB header_files "src/*.h")
+file(GLOB_RECURSE SOURCES "src/*.cpp")
+file(GLOB_RECURSE HEADERS "src/*.h")
 
 set(qrc_files
     resources/resources.qrc
 )
 
-add_executable(meeshop ${src_files} ${header_files} ${qrc_files})
+add_executable(meeshop ${SOURCES} ${HEADERS} ${qrc_files})
 
 set_target_properties(meeshop PROPERTIES AUTOMOC ON AUTORCC ON)
 

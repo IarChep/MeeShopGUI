@@ -2,6 +2,8 @@ import QtQuick 1.1
 import com.nokia.meego 1.0
 import com.nokia.extras 1.1
 
+import IarChep.MeeShop 1.0
+
 import "../Components"
 
 Page {
@@ -13,7 +15,11 @@ Page {
 
     Header {id: header}
 
-
+    ProgressIndicator {
+        anchors.centerIn: parent
+        size: "medium"
+        progress: 50
+    }
 
     // do not touch, SwipePageStackWindow connections!
     Connections{

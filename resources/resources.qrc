@@ -26,5 +26,13 @@
         <file>qml/Components/CategoriesSheet.qml</file>
         <file>qml/Components/Waiter.qml</file>
         <file>qml/Components/TextCollapsible.qml</file>
+        <file>ProcessIndicatorAssets/mask-96.png</file>
+        <file>ProcessIndicatorAssets/mask-64.png</file>
+        <file>ProcessIndicatorAssets/mask-32.png</file>
+        <file>ProcessIndicatorAssets/mask-24.png</file>
+        <file>ProcessIndicatorAssets/base-96.png</file>
+        <file>ProcessIndicatorAssets/base-64.png</file>
+        <file>ProcessIndicatorAssets/base-32.png</file>
+        <file>ProcessIndicatorAssets/base-24.png</file>
     </qresource>
 </RCC>

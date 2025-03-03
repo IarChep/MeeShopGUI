@@ -37,7 +37,7 @@ SwipePageStackWindow {
         id: catSheet
     }
 
-    ProcessManager {
+    PackageManager {
         id: processManager
     }
 
