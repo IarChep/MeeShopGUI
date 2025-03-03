@@ -64,8 +64,8 @@ protected:
             qreal centerY = height() / 2;
             qreal radius = floor(width() * sqrt(2) / 2) + 1;
 
-            qreal startAngle = 270;
-            qreal spanAngle = (m_progress / 100.0) * 360;
+            qreal startAngle = 90;
+            qreal spanAngle = -(m_progress / 100.0) * 360;
 
             // Calculate start point
             qreal startX = centerX + radius * cos(startAngle * M_PI / 180);

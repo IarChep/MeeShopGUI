@@ -1,13 +1,17 @@
 cmake_minimum_required(VERSION 3.18.0)
+
+
 project(cmake-simulator-qml LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
+set(QML_IMPORT_PATH "/home/user/QtSDK/Simulator/Qt/gcc/imports" CACHE STRING "")
 
 option(BUILD_N9 "Build MeeShop for n9" off)
 
 find_package(Qt4 4.7.4 COMPONENTS QtCore QtGui QtDeclarative QtNetwork QtSvg REQUIRED)
 find_package(X11 REQUIRED)
 find_package(nlohmann_json REQUIRED)
+
 
 if(BUILD_N9)
     set(CMAKE_EXE_LINKER_FLAGS "-static-libstdc++ -Wl,--dynamic-linker,/lib/ld-linux.so.3")

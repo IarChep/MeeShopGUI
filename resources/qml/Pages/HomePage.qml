@@ -15,10 +15,8 @@ Page {
 
     Header {id: header}
 
-    ProgressIndicator {
-        anchors.centerIn: parent
-        size: "medium"
-        progress: 50
+    Image {
+        source: "file"
     }
 
     // do not touch, SwipePageStackWindow connections!

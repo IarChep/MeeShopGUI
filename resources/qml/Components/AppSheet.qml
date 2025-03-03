@@ -102,6 +102,8 @@ Sheet {
             }
         }
         Rectangle {
+            property int appIconSize: 64
+            property bool indicatorVisible: false
             id: appRect
             width: parent.width
             height: 100
@@ -111,11 +113,29 @@ Sheet {
                 x: 15
                 anchors.verticalCenter: parent.verticalCenter
                 spacing: 15
-                Image {
+                Item {
                     width: 64
                     height: width
-                    source: appInfo.icon
+                    ProgressIndicator {
+                        size: "medium"
+                        progress: 75
+                        visible: appRect.indicatorVisible
+                        anchors.centerIn: parent
+                    }
+                    Image {
+                        anchors.centerIn: parent
+                        width: appRect.appIconSize
+                        height: width
+                        source: appInfo.icon
+                        Behavior on width {
+                            PropertyAnimation {
+                                duration: 350
+                                easing.type: Easing.InOutQuad
+                            }
+                        }
+                    }
                 }
+
                 Column {
                     Text {
                         text: appInfo.title
@@ -149,7 +169,8 @@ Sheet {
                 text: "Install"
                 onClicked:  {
                     enabled = false
-                    installRect.start_installation()
+                    appRect.appIconSize = 40
+                    appRect.indicatorVisible = true
                 }
             }
         }
