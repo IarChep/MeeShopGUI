@@ -14,7 +14,7 @@
 #include <X11/Xatom.h>
 #endif
 
-SwipeControl::SwipeControl(QDeclarativeView *view, bool autoExpose)
+SwipeControl::SwipeControl(QmlApplicationViewer *view, bool autoExpose)
     : QObject(view),
       _locked(true),
       _view(view)

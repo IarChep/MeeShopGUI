@@ -7,6 +7,6 @@ compiler.libcxx=libstdc++11
 compiler.version=11
 os=Linux
 [buildenv]
-CC=/opt/harmattan-gcc-11.1/bin/arm-none-linux-gnueabi-gcc
-CXX=/opt/harmattan-gcc-11.1/bin/arm-none-linux-gnueabi-g++
-LD=/opt/harmattan-gcc-11.1/bin/arm-none-linux-gnueabi-ld
+CC=/opt/n9-gcc-11.1/bin/arm-none-linux-gnueabi-gcc
+CXX=/opt/n9-gcc-11.1/bin/arm-none-linux-gnueabi-g++
+LD=/opt/n9-gcc-11.1/bin/arm-none-linux-gnueabi-ld

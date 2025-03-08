@@ -1,6 +1,7 @@
 #include <QApplication>
 #include <QScopedPointer>
 
+#include "qmlapplicationviewer/qmlapplicationviewer.h"
 #include <QtDeclarative/qdeclarative.h>
 #include <QDeclarativeEngine>
 #include <QDeclarativeView>
@@ -19,7 +20,7 @@
 
 Q_DECL_EXPORT int main(int argc, char *argv[])
 {
-    QScopedPointer<QApplication> app(new QApplication(argc, argv));
+    QScopedPointer<QApplication> app(createApplication(argc, argv));
 
     qmlRegisterType<MeeShop::OpenReposApi>("IarChep.MeeShop", 1, 0, "OpenReposApi");
     qmlRegisterType<MeeShop::MeeShopApplicationModel>("IarChep.MeeShop", 1, 0, "ApplicationModel");
@@ -32,14 +33,12 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
     qRegisterMetaType<MeeShop::ApplicationInfo*>();
     qRegisterMetaType<MeeShop::MeeShopApplicationModel*>();
 
-    QScopedPointer<QDeclarativeView> viewer(new QDeclarativeView);
-    QObject::connect(viewer->engine(), SIGNAL(quit()), viewer.data(), SLOT(close()));
+    QmlApplicationViewer viewer;
+    viewer.setOrientation(QmlApplicationViewer::ScreenOrientationLockPortrait);
+    viewer.setSource(QUrl("qrc:/qml/main.qml"));
+    viewer.showExpanded();
 
-    SwipeControl * swipeControl = new SwipeControl(viewer.data(), true);
-
-    viewer->setResizeMode(QDeclarativeView::SizeRootObjectToView);
-    viewer->setSource(QUrl("qrc:/qml/main.qml"));
-    viewer->showFullScreen();
+    SwipeControl * swipeControl = new SwipeControl(&viewer, true);
 
     return app->exec();
 }

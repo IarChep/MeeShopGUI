@@ -14,6 +14,7 @@
 #include <QDeclarativeView>
 #include <QDeclarativeContext>
 #include <QDebug>
+#include "../qmlapplicationviewer/qmlapplicationviewer.h"
 
 class SwipeControl : public QObject
 {
@@ -28,7 +29,7 @@ private:
     void updateLockedState();
 
 public:
-    SwipeControl(QDeclarativeView *view, bool autoExpose=true);
+    SwipeControl(QmlApplicationViewer *view, bool autoExpose=true);
 
     bool locked() const { return _locked; }
 
