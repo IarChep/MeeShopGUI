@@ -58,11 +58,12 @@ void PseudoTerm::run_command(const std::string& programPath, const std::vector<s
             exit(1);
         }
 
-        ioctl(slave_fd, TIOCSCTTY, 0);
         dup2(slave_fd, STDIN_FILENO);
         dup2(slave_fd, STDOUT_FILENO);
         dup2(slave_fd, STDERR_FILENO);
         close(slave_fd);
+
+        setenv("LANG", "en", 1);
 
         std::vector<const char*> exec_args;
         exec_args.push_back(programPath.c_str());
@@ -75,7 +76,6 @@ void PseudoTerm::run_command(const std::string& programPath, const std::vector<s
         if (OnProgramErrored) {
             OnProgramErrored(errno);
         }
-        std::cerr << "Error executing command: " << strerror(errno) << std::endl;
         exit(1);
     } else {
         fd_set read_fds;

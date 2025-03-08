@@ -11,6 +11,7 @@ set(QML_IMPORT_PATH "/home/user/QtSDK/Simulator/Qt/gcc/imports" CACHE STRING "Pa
 find_package(Qt4 4.7.4 COMPONENTS QtCore QtGui QtDeclarative QtNetwork QtSvg REQUIRED)
 find_package(X11 REQUIRED)
 find_package(nlohmann_json REQUIRED)
+find_package(Threads REQUIRED)
 find_package(PkgConfig REQUIRED)
 
 file(GLOB_RECURSE SOURCES "src/*.cpp")
@@ -24,7 +25,7 @@ add_executable(meeshop ${SOURCES} ${HEADERS} ${RESOURCES})
 
 set_target_properties(meeshop PROPERTIES AUTOMOC ON AUTORCC ON)
 
-target_link_libraries(meeshop PRIVATE Qt4::QtCore Qt4::QtGui Qt4::QtDeclarative Qt4::QtNetwork Qt4::QtSvg nlohmann_json::nlohmann_json X11::X11)
+target_link_libraries(meeshop PRIVATE Qt4::QtCore Qt4::QtGui Qt4::QtDeclarative Qt4::QtNetwork Qt4::QtSvg nlohmann_json::nlohmann_json Threads::Threads X11::X11)
 
 if (BUILD_N9)
     pkg_check_modules(boostable ${CMAKE_SYSROOT}/usr/lib/pkgconfig/qdeclarative-boostable.pc REQUIRED)

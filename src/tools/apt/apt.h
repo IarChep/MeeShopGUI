@@ -6,8 +6,11 @@
 #include <iostream>
 #include <string>
 #include <sstream>
-#include <functional>
+#include <thread>
+#include <mutex>
 #include "pseudoTerminal.h"
+#include <QObject>
+#include <qdebug.h>
 
 enum class AptEventType {
     READING_PACKAGE_LISTS,
@@ -40,19 +43,17 @@ struct PackageInfo {
     std::vector<std::string> new_packages;
 };
 
-class AptTools {
+class AptTools : public QObject {
+
+    Q_OBJECT
+
 private:
     PseudoTerm pt;
     std::string apt_executable;
     std::string apt_out;
     std::unordered_map<AptEventType, AptEvent> current_events;
     AptEventType current_active_event = AptEventType::UNKNOWN;
-
-    // Коллбэки для уведомлений
-    std::function<void(const std::string&, int)> onProgressChanged;
-    std::function<void(const std::string&)> onActionChanged;
-    std::function<void(const std::string&, const std::string&)> onErrorOrWarning;
-    std::function<void(int, const std::string&)> onExited; // Новый обработчик
+    std::mutex pt_mutex; // Mutex to protect access to pt
 
     AptEventType identifyEvent(const std::string& line) {
         if (line.find("Reading package lists...") != std::string::npos)
@@ -104,9 +105,7 @@ private:
             if (current_active_event != AptEventType::UNKNOWN) {
                 auto& event = current_events[current_active_event];
                 event.progress = 100;
-                if (onProgressChanged) {
-                    onProgressChanged(getEventName(event.type), 100);
-                }
+                emit progressChanged(QString::fromStdString(getEventName(event.type)), 100);
                 current_events.erase(current_active_event);
                 current_active_event = AptEventType::UNKNOWN;
             }
@@ -122,32 +121,30 @@ private:
             event.package_name = package_name;
             current_events[event_type] = event;
             current_active_event = event_type;
-            if (onActionChanged) {
-                onActionChanged(getEventName(event_type) + (package_name.empty() ? "" : " " + package_name));
-            }
+            emit actionChanged(QString::fromStdString(getEventName(event_type) + (package_name.empty() ? "" : " " + package_name)));
         } else {
             it->second.progress = progress;
             it->second.package_name = package_name;
         }
 
-        if (progress != -1 && onProgressChanged) {
-            onProgressChanged(getEventName(event_type), progress);
+        if (progress != -1) {
+            emit progressChanged(QString::fromStdString(getEventName(event_type)), progress);
         }
     }
 
     std::string getEventName(AptEventType type) {
         switch (type) {
-            case AptEventType::READING_PACKAGE_LISTS: return "Reading package lists";
-            case AptEventType::BUILDING_DEPENDENCY_TREE: return "Building dependency tree";
-            case AptEventType::READING_STATE_INFO: return "Reading state information";
-            case AptEventType::READING_DATABASE: return "Reading database";
-            case AptEventType::UNPACKING: return "Unpacking";
-            case AptEventType::SETTING_UP: return "Setting up";
-            case AptEventType::DOWNLOADING: return "Downloading";
-            case AptEventType::HIT: return "Hit repository";
-            case AptEventType::DONE: return "Done";
-            case AptEventType::REMOVING: return "Removing";
-            default: return "Unknown";
+        case AptEventType::READING_PACKAGE_LISTS: return "Reading package lists";
+        case AptEventType::BUILDING_DEPENDENCY_TREE: return "Building dependency tree";
+        case AptEventType::READING_STATE_INFO: return "Reading state information";
+        case AptEventType::READING_DATABASE: return "Reading database";
+        case AptEventType::UNPACKING: return "Unpacking";
+        case AptEventType::SETTING_UP: return "Setting up";
+        case AptEventType::DOWNLOADING: return "Downloading";
+        case AptEventType::HIT: return "Hit repository";
+        case AptEventType::DONE: return "Done";
+        case AptEventType::REMOVING: return "Removing";
+        default: return "Unknown";
         }
     }
 
@@ -156,56 +153,84 @@ private:
             processLine(out);
         };
         pt.OnProgramExited = [this](const int& code) {
-            if (code != 0 && onErrorOrWarning) {
-                onErrorOrWarning("Error", "APT command exited with code: " + std::to_string(code));
-            } else if (onExited) {
-                onExited(code, apt_out);
+            qDebug() << "Apt exited with code" << code;
+            if (code != 0) {
+                emit errorOrWarning("Error", "APT command exited with code: " + QString::number(code));
+            } else {
+                emit exited(code, QString::fromStdString(apt_out));
             }
+        };
+        pt.OnProgramErrored = [this](const int& code) {
+            qDebug() << "Apt fucked up, that's why: " << code;
+            emit errorOrWarning("Error", "APT command exited with code: " + QString::number(code));
         };
     }
 
 public:
-    AptTools(const std::string apt_exe) : pt(OutputMode::Trim), apt_executable(apt_exe) {
+    explicit AptTools(const std::string& apt_exe, QObject* parent = nullptr)
+        : QObject(parent), pt(OutputMode::Trim), apt_executable(apt_exe) {
         setupPseudoTerminalCallbacks();
     }
 
-    void setOnProgressChanged(std::function<void(const std::string&, int)> callback) {
-        onProgressChanged = callback;
-    }
-
-    void setOnActionChanged(std::function<void(const std::string&)> callback) {
-        onActionChanged = callback;
-    }
-
-    void setOnErrorOrWarning(std::function<void(const std::string&, const std::string&)> callback) {
-        onErrorOrWarning = callback;
-    }
-
-    void setOnExited(std::function<void(int, const std::string&)> callback) {
-        onExited = callback;
-    }
-
     void updateRepos() {
+        if (access(apt_executable.c_str(), X_OK) != 0) {
+            emit errorOrWarning("Error", "APT executable not found or not executable: " + QString::fromStdString(apt_executable));
+            return;
+        }
         apt_out = "";
-        pt.run_command(apt_executable, {"update"});
+        std::thread t([this]() {
+            std::lock_guard<std::mutex> lock(pt_mutex);
+            pt.run_command(apt_executable, {"update"});
+        });
+        t.detach();
     }
 
     void installPackage(const std::string& package) {
+        if (access(apt_executable.c_str(), X_OK) != 0) {
+            qDebug() << "emiting error!";
+            emit errorOrWarning("Error", "APT executable not found or not executable: " + QString::fromStdString(apt_executable));
+            return;
+        }
         apt_out = "";
-        pt.run_command(apt_executable, {"install", "-y", package});
+        std::thread t([this, package]() {
+            std::lock_guard<std::mutex> lock(pt_mutex);
+            pt.run_command(apt_executable, {"install", "-y", package});
+        });
+        t.detach();
     }
 
     void removePackage(const std::string& package) {
+        if (access(apt_executable.c_str(), X_OK) != 0) {
+            emit errorOrWarning("Error", "APT executable not found or not executable: " + QString::fromStdString(apt_executable));
+            return;
+        }
         apt_out = "";
-        pt.run_command(apt_executable, {"remove", "-y", package});
+        std::thread t([this, package]() {
+            std::lock_guard<std::mutex> lock(pt_mutex);
+            pt.run_command(apt_executable, {"remove", "-y", package});
+        });
+        t.detach();
     }
 
     void autoremovePurge() {
+        if (access(apt_executable.c_str(), X_OK) != 0) {
+            emit errorOrWarning("Error", "APT executable not found or not executable: " + QString::fromStdString(apt_executable));
+            return;
+        }
         apt_out = "";
-        pt.run_command(apt_executable, {"autoremove", "--purge", "-y"});
+        std::thread t([this]() {
+            std::lock_guard<std::mutex> lock(pt_mutex);
+            pt.run_command(apt_executable, {"autoremove", "--purge", "-y"});
+        });
+        t.detach();
     }
 
     PackageInfo simulateInstall(const std::string& package) {
+        if (access(apt_executable.c_str(), X_OK) != 0) {
+            emit errorOrWarning("Error", "APT executable not found or not executable: " + QString::fromStdString(apt_executable));
+            return PackageInfo();
+        }
+        std::lock_guard<std::mutex> lock(pt_mutex);
         PackageInfo result;
         apt_out = "";
 
@@ -256,6 +281,7 @@ public:
     }
 
     bool isInstalled(const std::string& package) {
+        std::lock_guard<std::mutex> lock(pt_mutex);
         apt_out = "";
         auto original_handler = pt.OnOutputReceived;
 
@@ -275,11 +301,18 @@ public:
         AptEventType event_type = identifyEvent(line);
         if (event_type != AptEventType::UNKNOWN) {
             processEventLine(line, event_type);
-        } else if (line.find("E: ") != std::string::npos && onErrorOrWarning) {
-            onErrorOrWarning("Error", line);
-        } else if (line.find("W: ") != std::string::npos && onErrorOrWarning) {
-            onErrorOrWarning("Warning", line);
+        } else if (line.find("E: ") != std::string::npos) {
+            emit errorOrWarning("Error", QString::fromStdString(line));
+        } else if (line.find("W: ") != std::string::npos) {
+            emit errorOrWarning("Warning", QString::fromStdString(line));
         }
     }
+
+signals:
+    void progressChanged(const QString& action, int progress);
+    void actionChanged(const QString& action);
+    void errorOrWarning(const QString& type, const QString& message);
+    void exited(int code, const QString& output);
 };
+
 #endif

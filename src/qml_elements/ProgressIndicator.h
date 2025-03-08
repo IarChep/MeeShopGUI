@@ -45,51 +45,27 @@ protected:
         Q_UNUSED(option);
         Q_UNUSED(widget);
 
-        // Create an off-screen pixmap to combine base and mask
-        QPixmap combinedPixmap(width(), height());
-        combinedPixmap.fill(Qt::transparent);
+        if (basePixmap.isNull() || maskPixmap.isNull()) return;
 
-        QPainter combinedPainter(&combinedPixmap);
-        combinedPainter.setRenderHints(painter->renderHints());
+        // Draw the base pixmap
+        painter->drawPixmap(0, 0, basePixmap);
 
-        // Draw base
-        if (!basePixmap.isNull()) {
-            combinedPainter.drawPixmap(0, 0, basePixmap);
-        }
-
-        // If progress > 0, draw mask with clip path
+        // Draw progress if > 0
         if (m_progress > 0) {
-            QPainterPath path;
-            qreal centerX = width() / 2;
-            qreal centerY = height() / 2;
+            qreal centerX = width() / 2.0;
+            qreal centerY = height() / 2.0;
             qreal radius = floor(width() * sqrt(2) / 2) + 1;
+            QRectF rect(centerX - radius, centerY - radius, 2 * radius, 2 * radius);
 
-            qreal startAngle = 90;
-            qreal spanAngle = -(m_progress / 100.0) * 360;
-
-            // Calculate start point
-            qreal startX = centerX + radius * cos(startAngle * M_PI / 180);
-            qreal startY = centerY + radius * sin(startAngle * M_PI / 180);
-
+            QPainterPath path;
             path.moveTo(centerX, centerY);
-            path.lineTo(startX, startY);
-            path.arcTo(QRectF(centerX - radius, centerY - radius, 2*radius, 2*radius), startAngle, spanAngle);
+            path.arcTo(rect, 90, -(m_progress / 100.0) * 360);
             path.closeSubpath();
 
-            combinedPainter.setClipPath(path);
-            if (!maskPixmap.isNull()) {
-                qDebug() << "Drawing mask";
-                combinedPainter.drawPixmap(0, 0, maskPixmap);
-            } else {
-                qDebug() << "Mask is null";
-            }
-            combinedPainter.setClipping(false);
+            painter->setClipPath(path);
+            painter->drawPixmap(0, 0, maskPixmap);
+            painter->setClipping(false);
         }
-
-        combinedPainter.end();
-
-        // Draw the combined pixmap with the original painter
-        painter->drawPixmap(0, 0, combinedPixmap);
     }
 
 private:
