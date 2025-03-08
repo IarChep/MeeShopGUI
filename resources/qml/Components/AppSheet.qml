@@ -3,19 +3,20 @@ import com.nokia.meego 1.0
 import IarChep.MeeShop 1.0
 
 Sheet {
-    property int appId;
-    property variant appInfo;
     id: appSheet
+    property int appId
+    property variant appInfo
 
     rejectButtonText: "Go back"
 
     content: Item {
         anchors.fill: parent
 
-        Rectangle{
+        // Превью приложения
+        Rectangle {
             id: appPreviewRect
             width: parent.width
-            height:200
+            height: 200
             gradient: IconGradient {
                 iconColors: gradienter.get_gradient_colors(appInfo.icon)
             }
@@ -24,7 +25,6 @@ Sheet {
                 spacing: 15
                 NokiaShape {
                     anchors.horizontalCenter: parent.horizontalCenter
-                    id: bounding
                     width: 80
                     height: 80
                     Image {
@@ -45,12 +45,12 @@ Sheet {
             }
         }
 
+        // Содержимое приложения
         Flickable {
             id: flickable
-            property int oldContentY: 0
             y: appPreviewRect.height + appRect.height
             width: parent.width
-            height: parent.height -  appRect.height -appPreviewRect.height
+            height: parent.height - appRect.height - appPreviewRect.height
             contentHeight: appContent.height
             boundsBehavior: Flickable.StopAtBounds
 
@@ -77,33 +77,26 @@ Sheet {
                         }
                         font.pixelSize: 20
                         wrapMode: Text.WordWrap
-                        text: appInfo.description !== undefined ? appInfo.description + "<br>" : ""
-                        onTextChanged: console.log(appContent.height)
+                        text: appInfo.description ? appInfo.description + "<br>" : ""
                     }
                 }
-
-
             }
 
             onContentYChanged: {
-                appPreviewRect.y -= (contentY - oldContentY) * 0.5;
+                appPreviewRect.y -= (contentY - flickable.oldContentY) * 0.5;
                 if (contentY < appPreviewRect.height) {
-                    appRect.y -= (contentY - oldContentY)
-                    appRect.y = Math.min(200, appRect.y)
-                }
-
-                if (contentY > appPreviewRect.height) {
-                    appRect.y = 0
+                    appRect.y -= (contentY - flickable.oldContentY);
+                    appRect.y = Math.min(200, appRect.y);
                 } else {
-                    appRect.y = Math.min(200, appRect.y)
+                    appRect.y = 0;
                 }
-
-                oldContentY = contentY
+                flickable.oldContentY = contentY;
             }
+            property int oldContentY: 0
         }
+
+        // Информация о приложении
         Rectangle {
-            property int appIconSize: 64
-            property bool indicatorVisible: false
             id: appRect
             width: parent.width
             height: 100
@@ -113,24 +106,43 @@ Sheet {
                 x: 15
                 anchors.verticalCenter: parent.verticalCenter
                 spacing: 15
-                Item {
-                    width: 64
-                    height: width
-                    ProgressIndicator {
-                        size: "medium"
-                        progress: 75
-                        visible: appRect.indicatorVisible
-                        anchors.centerIn: parent
-                    }
-                    Image {
-                        anchors.centerIn: parent
-                        width: appRect.appIconSize
+                Column {
+                    Item {
+                        width: 64
                         height: width
-                        source: appInfo.icon
-                        Behavior on width {
-                            PropertyAnimation {
-                                duration: 350
-                                easing.type: Easing.InOutQuad
+                        ProgressIndicator {
+                            id: actionIndicator
+                            size: "medium"
+                            progress: 75
+                            visible: appRect.indicatorVisible
+                            anchors.centerIn: parent
+                            Connections {
+                                target: packageManager
+                                onActionProgressChanged: {
+                                    actionIndicator.progress = progress;
+                                }
+                            }
+                        }
+                        Image {
+                            anchors.centerIn: parent
+                            width: appRect.appIconSize
+                            height: width
+                            source: appInfo.icon
+                            Behavior on width {
+                                PropertyAnimation {
+                                    duration: 350
+                                    easing.type: Easing.InOutQuad
+                                }
+                            }
+                        }
+                    }
+                    Text {
+                        id: actionText
+                        visible: true
+                        Connections {
+                            target: packageManager
+                            onActionChanged: {
+                                actionText.text = action;
                             }
                         }
                     }
@@ -148,7 +160,7 @@ Sheet {
                         font.pixelSize: 20
                     }
                 }
-                Text{
+                Text {
                     id: statusText
                     anchors.horizontalCenter: parent.horizontalCenter
                     y: 80
@@ -167,25 +179,30 @@ Sheet {
                 anchors.verticalCenter: parent.verticalCenter
                 anchors.rightMargin: 15
                 text: "Install"
-                onClicked:  {
-                    enabled = false
-                    appRect.appIconSize = 40
-                    appRect.indicatorVisible = true
+                onClicked: {
+                    packageManager.install_package(appInfo.package);
+                    enabled = false;
+                    appRect.appIconSize = 40;
+                    appRect.indicatorVisible = true;
                 }
             }
+            property int appIconSize: 64
+            property bool indicatorVisible: false
         }
-        Waiter {id: waiter}
+
+        Waiter { id: waiter }
+
         Connections {
             target: appSheet
             onStatusChanged: {
-                if (status == 0) {
-                    console.log("opening")
-                    waiter.show()
+                if (status === 0) {
+                    console.log("opening");
+                    waiter.show();
                 } else if (status === 1) {
-                    console.log("opened")
-                    api.fetchAppInfo(appId)
-                    appSheet.appInfo = api.appInfo
-                    console.log("info changed")
+                    console.log("opened");
+                    api.fetchAppInfo(appId);
+                    appSheet.appInfo = api.appInfo;
+                    console.log("info changed");
                     waiter.hide();
                 }
             }

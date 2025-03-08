@@ -3,68 +3,87 @@
 namespace MeeShop {
 
 ApplicationInfo::ApplicationInfo(QObject *parent)
-    : QObject{parent}
+    : QObject(parent)
 {
 
 }
 
-void ApplicationInfo::setJson(nlohmann::json app) {
+void ApplicationInfo::setJson(const nlohmann::json app) {
     m_appJson = app;
+    qDebug() << QString::fromStdString(m_appJson.dump(4)) << "\n";
     emit appChanged();
 }
 
-QString ApplicationInfo::id() {
+QString ApplicationInfo::id() const {
     if(m_appJson.contains("appid"))
         return QString::fromStdString(m_appJson["appid"].get<std::string>());
+    return QString(); // Возвращаем пустую строку, если ключа нет
 }
-QString ApplicationInfo::title() {
-    if(m_appJson.contains("title")) {
+
+QString ApplicationInfo::title() const {
+    if(m_appJson.contains("title"))
         return QString::fromStdString(m_appJson["title"].get<std::string>());
-    }
+    return QString();
 }
-QString ApplicationInfo::publisher() {
-    if(m_appJson.contains("user"))
+
+QString ApplicationInfo::publisher() const {
+    if(m_appJson.contains("user") && m_appJson["user"].contains("name"))
         return QString::fromStdString(m_appJson["user"]["name"].get<std::string>());
+    return QString();
 }
-QString ApplicationInfo::description() {
+
+QString ApplicationInfo::description() const {
     if(m_appJson.contains("body"))
         return QString::fromStdString(m_appJson["body"].get<std::string>());
+    return QString();
 }
-QString ApplicationInfo::package() {
-    if(m_appJson.contains("packages"))
-        return QString::fromStdString(m_appJson["packages"]["harmattan"].get<std::string>());
-    else if(m_appJson.contains("package"))
+
+QString ApplicationInfo::package() const {
+    if(m_appJson.contains("packages") && m_appJson["packages"].contains("harmattan") && m_appJson["packages"]["harmattan"].contains("name"))
+        return QString::fromStdString(m_appJson["packages"]["harmattan"]["name"].get<std::string>());
+    else if(m_appJson.contains("package") && m_appJson["package"].contains("name"))
         return QString::fromStdString(m_appJson["package"]["name"].get<std::string>());
+    return QString();
 }
-QString ApplicationInfo::downloadsCount() {
+
+QString ApplicationInfo::downloadsCount() const {
     if(m_appJson.contains("downloads"))
         return QString::fromStdString(m_appJson["downloads"].get<std::string>());
+    return QString();
 }
-int ApplicationInfo::ratingCount() {
-    if(m_appJson.contains("rating"))
+
+int ApplicationInfo::ratingCount() const {
+    if(m_appJson.contains("rating") && m_appJson["rating"].contains("count"))
         return std::stoi(m_appJson["rating"]["count"].get<std::string>());
+    return 0;
 }
-QStringList ApplicationInfo::screenshotsThumbnails() {
+
+QStringList ApplicationInfo::screenshotsThumbnails() const {
+    QStringList thumbs;
     if(m_appJson.contains("screenshots")) {
-        QStringList thumbs;
-        for (nlohmann::json &screenshot : m_appJson["screenshots"]) {
-            thumbs.push_back(QString::fromStdString(screenshot["thumbs"]["medium"].get<std::string>()));
+        for (const auto& screenshot : m_appJson["screenshots"]) {
+            if(screenshot.contains("thumbs") && screenshot["thumbs"].contains("medium"))
+                thumbs.push_back(QString::fromStdString(screenshot["thumbs"]["medium"].get<std::string>()));
         }
-        return thumbs;
     }
+    return thumbs;
 }
-QStringList ApplicationInfo::screenshots() {
+
+QStringList ApplicationInfo::screenshots() const {
+    QStringList screenshots;
     if(m_appJson.contains("screenshots")) {
-        QStringList screenshots;
-        for (nlohmann::json &screenshot : m_appJson["screenshots"]) {
-            screenshots.push_back(QString::fromStdString(screenshot["url"].get<std::string>()));
+        for (const auto& screenshot : m_appJson["screenshots"]) {
+            if(screenshot.contains("url"))
+                screenshots.push_back(QString::fromStdString(screenshot["url"].get<std::string>()));
         }
-        return screenshots;
     }
+    return screenshots;
 }
-QString ApplicationInfo::icon() {
-    if(m_appJson.contains("icon"))
+
+QString ApplicationInfo::icon() const {
+    if(m_appJson.contains("icon") && m_appJson["icon"].contains("url"))
         return QString::fromStdString(m_appJson["icon"]["url"].get<std::string>());
+    return QString();
 }
 
 } // namespace MeeShop

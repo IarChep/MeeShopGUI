@@ -25,18 +25,18 @@ class ApplicationInfo : public QObject
 public:
     explicit ApplicationInfo(QObject *parent = 0);
 
-    void setJson(nlohmann::json app);
+    void setJson(const nlohmann::json app);
 
-    QString id();
-    QString title();
-    QString publisher();
-    QString description();
-    QString package();
-    QString downloadsCount();
-    int ratingCount();
-    QStringList screenshotsThumbnails();
-    QStringList screenshots();
-    QString icon();
+    QString id() const;
+    QString title() const;
+    QString publisher() const;
+    QString description() const;
+    QString package() const;
+    QString downloadsCount() const;
+    int ratingCount() const;
+    QStringList screenshotsThumbnails() const;
+    QStringList screenshots() const;
+    QString icon() const;
 
 signals:
     void appChanged();

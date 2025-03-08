@@ -44,5 +44,6 @@ void MeeShop::PackageManager::update_repositories() {
 }
 
 void MeeShop::PackageManager::install_package(QString package) {
+    qDebug() << "installing package " << package;
     apt.installPackage(package.toStdString());
 }

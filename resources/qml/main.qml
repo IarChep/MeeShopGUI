@@ -38,7 +38,7 @@ SwipePageStackWindow {
     }
 
     PackageManager {
-        id: processManager
+        id: packageManager
     }
 
 }

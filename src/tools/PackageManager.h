@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <QRegExp>
 #include "apt/apt.h"
+#include <iostream>
 
 namespace MeeShop {
 class PackageManager : public QObject
@@ -19,9 +20,11 @@ class PackageManager : public QObject
 public:
     explicit PackageManager(QObject *parent = 0): QObject(parent), apt("/usr/bin/aegis-apt-get") {
         apt.setOnActionChanged([this](const std::string& action) {
+            std::cout << "Action changed: " << action << "\n";
             this->actionChanged(QString::fromStdString(action));
         });
         apt.setOnProgressChanged([this](const std::string action, int progress) {
+            std::cout << "Action progress changed: " << action << ' ' << progress << '%' << "\n";
             this->actionProgressChanged(QString::fromStdString(action), progress);
         });
         apt.setOnErrorOrWarning([this](const std::string& type, const std::string& message) {
@@ -33,7 +36,7 @@ public:
         });
     }
 
-    void install_repo();
+    static void install_repo();
     void check_root();
 signals:
     void actionChanged(QString action);
