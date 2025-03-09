@@ -17,7 +17,7 @@ class PackageManager : public QObject
     Q_OBJECT
 
 public:
-    explicit PackageManager(QObject *parent = 0) : QObject(parent), apt("/bin/apt") {
+    explicit PackageManager(QObject *parent = 0) : QObject(parent), apt("/usr/bin/aegis-apt-get") {
         connect(&apt, SIGNAL(actionChanged(const QString&)), this, SLOT(handleActionChanged(const QString& action)));
         connect(&apt, SIGNAL(progressChanged(const QString&, int)), this, SLOT(handleProgressChanged(const QString&, int)));
         connect(&apt, SIGNAL(errorOrWarning(const QString, const QString&)), this, SLOT(handleErrorOrWarning(const QString&, const QString&)));
@@ -30,7 +30,7 @@ public:
 signals:
     void actionChanged(QString action);
     void actionProgressChanged(QString action, int progress);
-    void aptFailed(QString message);
+    void aptErrorOrWarning(QString type, QString message);
     void updateFinished();
     void installationFinished();
 
@@ -54,9 +54,7 @@ private slots:
     // Slot to handle errors or warnings
     void handleErrorOrWarning(const QString& type, const QString& message) {
         qDebug().nospace() << "PackageManager. APT failed with " << type << ": " << message;
-        if (type == "Error") {
-            emit aptFailed(message);
-        }
+        emit aptErrorOrWarning(type, message);
     }
 
     // Slot to handle process exit

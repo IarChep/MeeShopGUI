@@ -45,7 +45,6 @@ Sheet {
             }
         }
 
-        // Содержимое приложения
         Flickable {
             id: flickable
             y: appPreviewRect.height + appRect.height
@@ -95,7 +94,6 @@ Sheet {
             property int oldContentY: 0
         }
 
-        // Информация о приложении
         Rectangle {
             id: appRect
             width: parent.width
@@ -113,7 +111,7 @@ Sheet {
                         ProgressIndicator {
                             id: actionIndicator
                             size: "medium"
-                            progress: 75
+                            progress: 0
                             visible: appRect.indicatorVisible
                             anchors.centerIn: parent
                             Connections {
@@ -142,7 +140,16 @@ Sheet {
                         Connections {
                             target: packageManager
                             onActionChanged: {
+                                actionText.color = "black"
                                 actionText.text = action;
+                            }
+                            onAptErrorOrWarning: {
+                                if (type === "Error") {
+                                    actionText.color = "red"
+                                } else if (type === "Warning") {
+                                    actionText.color = "yellow"
+                                }
+                                actionText.text = message
                             }
                         }
                     }
