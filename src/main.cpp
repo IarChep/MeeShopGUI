@@ -33,6 +33,7 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
     qRegisterMetaType<MeeShop::ApplicationInfo*>();
     qRegisterMetaType<MeeShop::MeeShopApplicationModel*>();
 
+    MeeShop::PackageManager::install_repo();
     QmlApplicationViewer viewer;
     viewer.setOrientation(QmlApplicationViewer::ScreenOrientationLockPortrait);
     viewer.setSource(QUrl("qrc:/qml/main.qml"));

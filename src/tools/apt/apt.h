@@ -11,6 +11,7 @@
 #include "pseudoTerminal.h"
 #include <QObject>
 #include <qdebug.h>
+#include <unistd.h>
 
 enum class AptEventType {
     READING_PACKAGE_LISTS,
@@ -155,7 +156,7 @@ private:
         pt.OnProgramExited = [this](const int& code) {
             qDebug() << "Apt exited with code" << code;
             if (code != 0) {
-                emit errorOrWarning("Error", "APT command exited with code: " + QString::number(code));
+                emit errorOrWarning("Error", "APT command exited with code: " + QString::number(code) + "means" + strerror(code));
             } else {
                 emit exited(code, QString::fromStdString(apt_out));
             }
@@ -194,7 +195,7 @@ public:
         apt_out = "";
         std::thread t([this, package]() {
             std::lock_guard<std::mutex> lock(pt_mutex);
-            pt.run_command(apt_executable, {"install", "-y", package});
+            pt.run_command(apt_executable, {"install", "-y", "--force-yes", package});
         });
         t.detach();
     }
@@ -207,7 +208,7 @@ public:
         apt_out = "";
         std::thread t([this, package]() {
             std::lock_guard<std::mutex> lock(pt_mutex);
-            pt.run_command(apt_executable, {"remove", "-y", package});
+            pt.run_command(apt_executable, {"remove", "-y", "--force-yes",  package});
         });
         t.detach();
     }
@@ -220,7 +221,7 @@ public:
         apt_out = "";
         std::thread t([this]() {
             std::lock_guard<std::mutex> lock(pt_mutex);
-            pt.run_command(apt_executable, {"autoremove", "--purge", "-y"});
+            pt.run_command(apt_executable, {"autoremove", "--purge", "-y", "--force-yes",});
         });
         t.detach();
     }
@@ -309,10 +310,11 @@ public:
     }
 
 signals:
+    void exited(int code, const QString& output);
+
     void progressChanged(const QString& action, int progress);
     void actionChanged(const QString& action);
     void errorOrWarning(const QString& type, const QString& message);
-    void exited(int code, const QString& output);
 };
 
 #endif

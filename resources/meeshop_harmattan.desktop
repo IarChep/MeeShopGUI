@@ -3,8 +3,8 @@ Encoding=UTF-8
 Version=1.0
 Type=Application
 Terminal=false
-Name=MeeShopTemplate
-Exec=/usr/bin/invoker --splash=/opt/meeshop/share/meeshop-splash.png --type=e -s /opt/meeshop/bin/meeshop
+Name=MeeShop
+Exec=env TERM=xterm /usr/bin/invoker --splash=/opt/meeshop/share/meeshop-splash.png --type=d -s /opt/meeshop/bin/meeshop
 Icon=/usr/share/icons/hicolor/80x80/apps/meeshop80.png
 X-Window-Icon=
 X-HildonDesk-ShowInToolbar=true

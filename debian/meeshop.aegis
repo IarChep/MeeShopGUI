@@ -3,8 +3,7 @@
 		<credential name="UID::root" />
 		<credential name="GID::root" />
 		<credential name="GRP::root" />
+		
+		<for path="/opt/meeshop/bin/meeshop" />
 	</request>
-
-	<for path="/opt/meeshop/bin/meeshop" />
-	<for path="applauncherd-launcher::/usr/bin/applauncherd.bin" id="" />
 </aegis>

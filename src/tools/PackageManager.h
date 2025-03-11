@@ -18,10 +18,11 @@ class PackageManager : public QObject
 
 public:
     explicit PackageManager(QObject *parent = 0) : QObject(parent), apt("/usr/bin/aegis-apt-get") {
-        connect(&apt, SIGNAL(actionChanged(const QString&)), this, SLOT(handleActionChanged(const QString& action)));
+        connect(&apt, SIGNAL(actionChanged(const QString&)), this, SLOT(handleActionChanged(const QString&)));
         connect(&apt, SIGNAL(progressChanged(const QString&, int)), this, SLOT(handleProgressChanged(const QString&, int)));
         connect(&apt, SIGNAL(errorOrWarning(const QString, const QString&)), this, SLOT(handleErrorOrWarning(const QString&, const QString&)));
-        connect(&apt, SIGNAL(exited(int code, const QString&)), this, SLOT(handleExited(int code, const QString&)));
+        connect(&apt, SIGNAL(exited(int, const QString&)), this, SLOT(handleExited(int, const QString&)));
+
     }
 
     static void install_repo();
