@@ -23,10 +23,12 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
     QScopedPointer<QApplication> app(createApplication(argc, argv));
 
     qmlRegisterType<MeeShop::OpenReposApi>("IarChep.MeeShop", 1, 0, "OpenReposApi");
+    qmlRegisterType<MeeShop::PackageManager>("IarChep.MeeShop", 1, 0, "PackageManager");
+
     qmlRegisterType<MeeShop::MeeShopApplicationModel>("IarChep.MeeShop", 1, 0, "ApplicationModel");
     qmlRegisterType<MeeShop::MeeShopCategoriesModel>("IarChep.MeeShop", 1, 0, "CategoriesModel");
+
     qmlRegisterType<MeeShop::Gradienter>("IarChep.MeeShop", 1, 0, "Gradienter");
-    qmlRegisterType<MeeShop::PackageManager>("IarChep.MeeShop", 1, 0, "PackageManager");
     qmlRegisterType<MeeShop::NokiaShape>("IarChep.MeeShop", 1, 0, "NokiaShape");
     qmlRegisterType<MeeShop::ProgressIndicator>("IarChep.MeeShop", 1, 0, "ProgressIndicator");
     qmlRegisterUncreatableType<MeeShop::ApplicationInfo>("IarChep.MeeShop", 1, 0, "ApplicationInfo", "ApplicationInfo is a read-only property!");
