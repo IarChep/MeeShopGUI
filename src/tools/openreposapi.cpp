@@ -56,7 +56,6 @@ void OpenReposApi::search(QString query) {
 }
 
 void OpenReposApi::getApplication(int app_id) {
-    QEventLoop loop;
     QString currentRoute = "/apps/" + QString::number(app_id); // Set route for app info
     request.setUrl(QUrl(baseUrl + currentRoute));
     QNetworkReply *reply = manager.get(request);
@@ -65,8 +64,9 @@ void OpenReposApi::getApplication(int app_id) {
         if (reply->error() == QNetworkReply::NoError) {
             qDebug() << "changed appInfo";
             nlohmann::json json = parseJson(reply->readAll());
+            qDebug() << json.dump(4).c_str();
             QVariant var = jsonToVariant(json);
-            appInfo = var.toHash();
+            appInfo = var.toMap();
             emit appInfoChanged();
         } else {
             qDebug() << "something is failed!";
@@ -74,8 +74,6 @@ void OpenReposApi::getApplication(int app_id) {
     }, reply);
 
     QObject::connect(reply, SIGNAL(finished()), lambda, SLOT(call()));
-    loop.exec();
-
 }
 
 void OpenReposApi::getAppComments(int app_id) {
@@ -108,7 +106,7 @@ QVariant OpenReposApi::jsonToVariant(const nlohmann::json &j) {
         }
         return list;
     } else if (j.is_string()) {
-        return QString::fromStdString(j.get<std::string>());
+        return QString::fromStdString(j.get<std::string>()).trimmed();
     } else if (j.is_boolean()) {
         return j.get<bool>();
     } else if (j.is_number_integer()) {

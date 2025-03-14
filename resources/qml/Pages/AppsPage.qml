@@ -66,8 +66,7 @@ Page {
         delegate: AppDelegate {
             higlightLetters: true
             onClicked: {
-                appSheet.appId = appId
-                appSheet.open()
+                appWindow.pageStack.replace(appPage, {appId: appId})
             }
         }
 

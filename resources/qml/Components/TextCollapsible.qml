@@ -12,9 +12,6 @@ Text {
     property bool __overflow: false
     property bool __collapsed: false
 
-    onLinkActivated: {
-        appWindow.openLink(link);
-    }
     function updateHeight() {
         if (__overflow) {
             if (__collapsed) {
@@ -42,7 +39,7 @@ Text {
         }
         gradient: Gradient {
             GradientStop { position: 0.0; color: "transparent" }
-            GradientStop { position: 1.0; color: "#e0e1e2"}
+            GradientStop { position: 1.0; color: "#E0E1E2" }
         }
         Image {
             id: imageArrowz

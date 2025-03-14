@@ -11,14 +11,22 @@ SwipePageStackWindow {
 
     initialPage: homePage
 
-    HomePage {
+    Component {
         id: homePage
+        HomePage {}
     }
-    AppsPage {
+
+    Component {
         id: appsPage
+        AppsPage {}
     }
-    RssPage {
+    Component {
         id: rssPage
+        RssPage {}
+    }
+    Component {
+        id: appPage
+        AppPage {}
     }
 
     OpenReposApi {
@@ -30,9 +38,6 @@ SwipePageStackWindow {
         id: gradienter
     }
 
-    AppSheet {
-        id: appSheet
-    }
     CategoriesSheet {
         id: catSheet
     }

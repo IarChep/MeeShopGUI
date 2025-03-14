@@ -21,7 +21,7 @@ class OpenReposApi : public QObject
     Q_OBJECT
     Q_PROPERTY(MeeShop::MeeShopApplicationModel* appModel READ getAppModel NOTIFY appModelChanged)
     Q_PROPERTY(MeeShop::MeeShopCategoriesModel* categoryModel READ getCategoryModel NOTIFY categoryModelChanged)
-    Q_PROPERTY(QVariantHash appInfo READ getAppInfo NOTIFY appInfoChanged)
+    Q_PROPERTY(QVariantMap appInfo READ getAppInfo NOTIFY appInfoChanged)
 public:
     explicit OpenReposApi(QObject *parent = nullptr) : QObject{parent},
         lastPage(0),
@@ -37,7 +37,7 @@ public:
 
     MeeShop::MeeShopApplicationModel* getAppModel() {return appModel;}
     MeeShop::MeeShopCategoriesModel* getCategoryModel() {return categoryModel;}
-    QVariantHash getAppInfo() {return appInfo;}
+    QVariantMap getAppInfo() {return appInfo;}
 
 
     Q_INVOKABLE void getCategories();
@@ -63,7 +63,7 @@ private:
 
     MeeShop::MeeShopApplicationModel* appModel;
     MeeShop::MeeShopCategoriesModel* categoryModel;
-    QVariantHash appInfo;
+    QVariantMap appInfo;
 };
 
 } // namespace MeeShop

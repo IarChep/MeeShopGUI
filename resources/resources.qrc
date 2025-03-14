@@ -34,5 +34,7 @@
         <file>ProcessIndicatorAssets/base-64.png</file>
         <file>ProcessIndicatorAssets/base-32.png</file>
         <file>ProcessIndicatorAssets/base-24.png</file>
+        <file>qml/Components/SectionHeader.qml</file>
+        <file>qml/Pages/AppPage.qml</file>
     </qresource>
 </RCC>
