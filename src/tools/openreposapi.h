@@ -6,23 +6,26 @@
 #include <QNetworkRequest>
 #include <QNetworkReply>
 #include <QEventLoop>
+#include <QCoreApplication>
 #include <nlohmann/json.hpp>
 #include "../models/MeeShopApplicationModel.h"
 #include "../models/MeeShopCategoriesModel.h"
 #include "../structs/applicationinfo.h"
+#include "LambdaSlot.h"
+#include <QVariantHash>
 
 namespace MeeShop {
 
 class OpenReposApi : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(MeeShop::MeeShopApplicationModel* appModel READ getAppModel NOTIFY modelChanged)
-    Q_PROPERTY(MeeShop::MeeShopCategoriesModel* categoryModel READ getCatModel NOTIFY catModelChanged)
-    Q_PROPERTY(MeeShop::ApplicationInfo* appInfo READ getAppInfo NOTIFY appInfoChanged)
+    Q_PROPERTY(MeeShop::MeeShopApplicationModel* appModel READ getAppModel NOTIFY appModelChanged)
+    Q_PROPERTY(MeeShop::MeeShopCategoriesModel* categoryModel READ getCategoryModel NOTIFY categoryModelChanged)
+    Q_PROPERTY(QVariantHash appInfo READ getAppInfo NOTIFY appInfoChanged)
 public:
     explicit OpenReposApi(QObject *parent = nullptr) : QObject{parent},
         lastPage(0),
-        appModel(new MeeShop::MeeShopApplicationModel(this)), categoryModel(new MeeShop::MeeShopCategoriesModel(this)), appInfo(new MeeShop::ApplicationInfo(this)),
+        appModel(new MeeShop::MeeShopApplicationModel(this)), categoryModel(new MeeShop::MeeShopCategoriesModel),
         baseUrl("http://openrepos.wunderwungiel.pl/api/v1")
     {
         request.setRawHeader("Accept-Langueage", "en");
@@ -33,26 +36,23 @@ public:
     }
 
     MeeShop::MeeShopApplicationModel* getAppModel() {return appModel;}
-    MeeShop::MeeShopCategoriesModel* getCatModel() {return categoryModel;}
-    MeeShop::ApplicationInfo* getAppInfo() {return appInfo;}
+    MeeShop::MeeShopCategoriesModel* getCategoryModel() {return categoryModel;}
+    QVariantHash getAppInfo() {return appInfo;}
 
 
     Q_INVOKABLE void getCategories();
     Q_INVOKABLE void getCategoryApps(int cat_id, int page);
     Q_INVOKABLE void search(QString query);
-    Q_INVOKABLE void fetchAppInfo(int app_id);
+    Q_INVOKABLE void getApplication(int app_id);
     Q_INVOKABLE void getAppComments(int app_id);
-
-private slots:
-    void process_categories();
-    void process_apps();
 signals:
     void finished(bool sucsess);
-    void modelChanged();
-    void catModelChanged();
+    void appModelChanged();
+    void categoryModelChanged();
     void appInfoChanged();
 private:
-    nlohmann::json parseJson(QByteArray data);
+    nlohmann::json parseJson(const QByteArray& data);
+    QVariant jsonToVariant(const nlohmann::json& json);
 
     int lastPage;
     int currentPage;
@@ -63,7 +63,7 @@ private:
 
     MeeShop::MeeShopApplicationModel* appModel;
     MeeShop::MeeShopCategoriesModel* categoryModel;
-    MeeShop::ApplicationInfo* appInfo;
+    QVariantHash appInfo;
 };
 
 } // namespace MeeShop
