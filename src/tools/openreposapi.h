@@ -45,6 +45,11 @@ public:
     Q_INVOKABLE void search(QString query);
     Q_INVOKABLE void getApplication(int app_id);
     Q_INVOKABLE void getAppComments(int app_id);
+
+public slots:
+    void process_apps();
+    void process_categories();
+    void process_app();
 signals:
     void finished(bool sucsess);
     void appModelChanged();

@@ -6,19 +6,8 @@ void OpenReposApi::getCategories() {
     QString currentRoute = "/categories"; // Set the current route for categories
     request.setUrl(QUrl(baseUrl + currentRoute));
     QNetworkReply *reply = manager.get(request);
-    MeeShop::LambdaSlot *lambda = new LambdaSlot([reply, this]() {
-        qDebug() << "Called lambda";
-        if (reply->error() == QNetworkReply::NoError) {
-            nlohmann::json jsonObj = parseJson(reply->readAll());
-            categoryModel->setJson(jsonObj);
-            emit categoryModelChanged();
-            emit finished(true);
-        } else {
-            emit finished(false);
-        }
-        reply->deleteLater();
-    }, reply);
-    QObject::connect(reply, SIGNAL(finished()), lambda, SLOT(call()));
+
+    QObject::connect(reply, SIGNAL(finished()), this, SLOT(process_categories()));
 }
 
 void OpenReposApi::getCategoryApps(int cat_id, int page) {
@@ -27,24 +16,8 @@ void OpenReposApi::getCategoryApps(int cat_id, int page) {
     request.setUrl(QUrl(baseUrl + currentRoute));
     QNetworkReply *reply = manager.get(request);
 
-    LambdaSlot *lambda = new LambdaSlot([reply, this]() {
-        qDebug() << "called lambda";
-        if (reply->error() == QNetworkReply::NoError) {
-            nlohmann::json jsonObj = parseJson(reply->readAll());
-            if (currentPage >= lastPage)
-                appModel->pushPageBack(jsonObj);
-            else
-                appModel->pushPageFront(jsonObj);
-            lastPage = currentPage;
-            emit appModelChanged();
-            emit finished(true);
-        } else {
-            emit finished(false);
-        }
-        reply->deleteLater();
-    }, reply);
 
-    connect(reply, SIGNAL(finished()), lambda, SLOT(call()));
+    connect(reply, SIGNAL(finished()), this, SLOT(process_apps()));
 }
 
 void OpenReposApi::search(QString query) {
@@ -60,20 +33,7 @@ void OpenReposApi::getApplication(int app_id) {
     request.setUrl(QUrl(baseUrl + currentRoute));
     QNetworkReply *reply = manager.get(request);
 
-    MeeShop::LambdaSlot* lambda = new MeeShop::LambdaSlot([reply, this] {
-        if (reply->error() == QNetworkReply::NoError) {
-            qDebug() << "changed appInfo";
-            nlohmann::json json = parseJson(reply->readAll());
-            qDebug() << json.dump(4).c_str();
-            QVariant var = jsonToVariant(json);
-            appInfo = var.toMap();
-            emit appInfoChanged();
-        } else {
-            qDebug() << "something is failed!";
-        }
-    }, reply);
-
-    QObject::connect(reply, SIGNAL(finished()), lambda, SLOT(call()));
+    QObject::connect(reply, SIGNAL(finished()), this, SLOT(process_app()));
 }
 
 void OpenReposApi::getAppComments(int app_id) {
@@ -120,5 +80,49 @@ QVariant OpenReposApi::jsonToVariant(const nlohmann::json &j) {
     }
 
     return QVariant();
+}
+
+void OpenReposApi::process_apps() {
+    QNetworkReply* reply = qobject_cast<QNetworkReply*>(sender());
+    if (reply->error() == QNetworkReply::NoError) {
+        nlohmann::json jsonObj = parseJson(reply->readAll());
+        if (currentPage >= lastPage)
+            appModel->pushPageBack(jsonObj);
+        else
+            appModel->pushPageFront(jsonObj);
+        lastPage = currentPage;
+        emit appModelChanged();
+        emit finished(true);
+    } else {
+        emit finished(false);
+    }
+    reply->deleteLater();
+}
+void OpenReposApi::process_categories() {
+    QNetworkReply* reply = qobject_cast<QNetworkReply*>(sender());
+    if (reply->error() == QNetworkReply::NoError) {
+        nlohmann::json jsonObj = parseJson(reply->readAll());
+        categoryModel->setJson(jsonObj);
+        emit categoryModelChanged();
+        emit finished(true);
+    } else {
+        emit finished(false);
+    }
+    reply->deleteLater();
+}
+
+void OpenReposApi::process_app() {
+    QNetworkReply* reply = qobject_cast<QNetworkReply*>(sender());
+    if (reply->error() == QNetworkReply::NoError) {
+        qDebug() << "changed appInfo";
+        nlohmann::json json = parseJson(reply->readAll());
+        qDebug() << json.dump(4).c_str();
+        QVariant var = jsonToVariant(json);
+        appInfo = var.toMap();
+        emit appInfoChanged();
+    } else {
+        qDebug() << "something is failed!";
+    }
+    reply->deleteLater();
 }
 }

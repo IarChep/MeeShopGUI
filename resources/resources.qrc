@@ -4,24 +4,16 @@
         <file>qml/Pages/HomePage.qml</file>
         <file>qml/Pages/RssPage.qml</file>
         <file>qml/Components/AppDelegate.qml</file>
-        <file>qml/Components/AppSheet.qml</file>
         <file>qml/Components/constants.js</file>
         <file>qml/Components/Header.qml</file>
-        <file>qml/Components/IconGradient.qml</file>
         <file>qml/Components/InstallationRectangle.qml</file>
         <file>qml/Components/SwipeListDelegate.qml</file>
         <file>qml/Components/SwipePageStackWindow.qml</file>
         <file>qml/Components/UIConstants.js</file>
         <file>qml/main.qml</file>
         <file>images/rss-page-icon.png</file>
-        <file>qml/Components/PageSwitcher.qml</file>
         <file>qml/Components/CategoryDelegate.qml</file>
         <file>images/headerImage.png</file>
-        <file>qml/Components/PageSelectionDialog.qml</file>
-        <file>qml/Components/SearchField.qml</file>
-        <file>qml/Components/EditBubble.js</file>
-        <file>qml/Components/Magnifier.js</file>
-        <file>qml/Components/SelectionHandles.js</file>
         <file>qml/Components/TextAreaHelper.js</file>
         <file>qml/Components/CategoriesSheet.qml</file>
         <file>qml/Components/Waiter.qml</file>

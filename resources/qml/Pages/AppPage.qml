@@ -21,14 +21,13 @@ Page {
         anchors.fill: parent
         contentHeight: infoColumn.height + appRect.height + appPreviewRect.height
         boundsBehavior: Flickable.StopAtBounds
+        flickableDirection: Flickable.VerticalFlick
 
         Rectangle {
             id: appPreviewRect
             width: parent.width
             height: 200
-            gradient: IconGradient {
-                iconColors: gradienter.get_gradient_colors(appInfo.icon)
-            }
+            gradient: gradienter.gradient
             Column {
                 anchors.centerIn: parent
                 spacing: 15
@@ -129,7 +128,6 @@ Page {
                 }
                 Text {
                     id: statusText
-                    anchors.horizontalCenter: parent.horizontalCenter
                     y: 80
                     font.pixelSize: 23
                 }
@@ -162,6 +160,39 @@ Page {
             id: infoColumn
             width: parent.width
             y: appPreviewRect.height + appRect.height
+            SectionHeader {
+                text: "Information"
+            }
+            Row {
+                anchors.horizontalCenter: parent.horizontalCenter
+                spacing: 16
+                Row {
+                    spacing: 6
+                    Image {
+                        anchors.verticalCenter: parent.verticalCenter
+                        source: "image://theme/icon-s-common-like"
+                    }
+                    Text {
+                        anchors.verticalCenter: parent.verticalCenter
+                        font.pixelSize: 20
+                        text: appInfo.rating.count
+                    }
+                }
+                Row {
+                    spacing: 6
+                    Image {
+                        anchors.verticalCenter: parent.verticalCenter
+                        source: "image://theme/icon-s-transfer-download"
+                    }
+                    Text {
+                        anchors.verticalCenter: parent.verticalCenter
+                        font.pixelSize: 20
+                        text: appInfo.downloads ? appInfo.downloads : ""
+                    }
+                }
+            }
+
+
             SectionHeader {
                 text: "Description"
             }
@@ -220,8 +251,14 @@ Page {
     Connections {
         target: api
         onAppInfoChanged: {
-            waiter.hide();
+            gradienter.getGradientColors(appInfo.icon.url ? appInfo.icon.url : "image://theme/icon-m-content-ovi-store-inverse" )
             console.log("app info changed");
+        }
+    }
+    Connections {
+        target: gradienter
+        onGradientChanged: {
+            waiter.hide();
         }
     }
 }

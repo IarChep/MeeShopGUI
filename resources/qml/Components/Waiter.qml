@@ -15,7 +15,7 @@ Rectangle {
         id: fadeOutAnimation
         from: 1.0
         to: 0.0
-        duration: 800
+        duration: 300
         running: false
     }
     function hide() {

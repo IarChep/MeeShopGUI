@@ -31,20 +31,20 @@ Item {
         anchors {
             left: parent.left
             right: text.text.length ? text.left : parent.right;
-            rightMargin: text.text.length ? mytheme.paddingXLarge : 0
+            rightMargin: text.text.length ? 12 : 0
             verticalCenter: parent.verticalCenter
         }
-        color: mytheme.colors.textColorTimestamp
+        color: "#918980"
         height: 1
     }
 
     Text {
         id: text
-        anchors { right: parent.right; rightMargin: mytheme.paddingXLarge }
-        color: mytheme.colors.textColorTimestamp
+        anchors { right: parent.right; rightMargin: 12 }
+        color: "#918980"
         elide: Text.ElideRight
         horizontalAlignment: Text.AlignRight
-        font.pixelSize: mytheme.fontSizeXSmall
+        font.pixelSize: 20
         font.bold: true
         text: root.text
     }

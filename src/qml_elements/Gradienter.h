@@ -10,38 +10,53 @@
 #include <QScopedPointer>
 #include <QEventLoop>
 #include <QDebug>
+#include <QGradient>
+#include <QtDeclarative/private/qdeclarativerectangle_p.h>
+#include <QtDeclarative/private/qdeclarativelist_p.h>
 
 namespace MeeShop {
 class Gradienter : public QObject {
     Q_OBJECT
+    Q_PROPERTY(QDeclarativeGradient* gradient READ getGradient() NOTIFY gradientChanged())
 public:
-    explicit Gradienter(QObject *parent = 0) : QObject(parent) {}
-
+    explicit Gradienter(QObject *parent = 0) : QObject(parent), m_gradient(new QDeclarativeGradient(this)) {}
+    QDeclarativeGradient* getGradient() {
+        return m_gradient;
+    }
 public slots:
-    QStringList get_gradient_colors(QString image_path) {
+    void getGradientColors(QString image_path) {
         QNetworkRequest request(image_path);
-        reply.reset(manager.get(request));
-
-        QEventLoop loop;
-        QObject::connect(reply.data(), SIGNAL(finished()), &loop, SLOT(quit()));
-        loop.exec();
-
+        QNetworkReply* reply = manager.get(request);
+        connect(reply, SIGNAL(finished()), this, SLOT(process_gradient()));
+    }
+    void process_gradient() {
+        QNetworkReply* reply = qobject_cast<QNetworkReply*>(sender());
         QImage image;
         image.loadFromData(reply->readAll());
 
         int middle = image.width() / 2;
-        QColor top_pixel = QColor(image.pixel(middle, 0));
-        QColor bottom_pixel = QColor(image.pixel(middle, image.height() - 1));
 
-        QStringList colors;
-        colors.push_back(top_pixel.name());
-        colors.push_back(bottom_pixel.name());
+        QDeclarativeGradientStop* stop0 = new QDeclarativeGradientStop(m_gradient);
+        stop0->setPosition(0.0);
+        stop0->setColor(QColor(image.pixel(middle, 5)));
 
-        return colors;
+        QDeclarativeGradientStop* stop1 = new QDeclarativeGradientStop(m_gradient);
+        stop1->setPosition(1.0);
+        stop1->setColor(QColor(image.pixel(middle, image.height() - 5)));
+
+        auto stops = m_gradient->stops();
+        stops.clear;
+        stops.append(&stops, stop0);
+        stops.append(&stops, stop1);
+        emit gradientChanged();
+
+        reply->deleteLater();
     }
+signals:
+    void gradientChanged();
 private:
+    QDeclarativeGradient* m_gradient;
     QNetworkAccessManager manager;
-    QScopedPointer<QNetworkReply> reply;
 };
 }
 

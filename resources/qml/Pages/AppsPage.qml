@@ -31,7 +31,19 @@ Page {
         anchors.top: header.bottom
         width: parent.width
         height: childrenRect.height + 10
-        SearchField {
+        TextField {
+            Image {
+                source: "image://theme/icon-l-search-main-view"
+                anchors.verticalCenter: parent.verticalCenter
+                anchors {
+                    left: parent.left
+                    leftMargin: UI.MARGIN_XLARGE
+                }
+            }
+
+            style: TextFieldStyle {
+                paddingLeft:  72
+            }
             anchors.centerIn: parent
             id: searchField
             width: parent.width - 20
@@ -64,7 +76,6 @@ Page {
         property int oldContentY;
 
         delegate: AppDelegate {
-            higlightLetters: true
             onClicked: {
                 appWindow.pageStack.replace(appPage, {appId: appId})
             }
