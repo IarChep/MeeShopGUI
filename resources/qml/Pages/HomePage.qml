@@ -15,8 +15,11 @@ Page {
 
     Header {id: header}
 
-    Image {
-        source: "file"
+    ExtendedIndicator {
+        type: "busy"
+        running: true
+        size: "big"
+        anchors.centerIn: parent
     }
 
     // do not touch, SwipePageStackWindow connections!

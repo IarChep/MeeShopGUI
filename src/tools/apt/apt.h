@@ -287,12 +287,13 @@ public:
         auto original_handler = pt.OnOutputReceived;
 
         pt.OnOutputReceived = [this](const std::string& out) {
+            qDebug() << "recieved line" << out.c_str();
             apt_out += out + "\n";
         };
-        pt.run_command("/bin/dpkg", {"-s", package});
+        pt.run_command("/usr/bin/aegis-dpkg", {"-s", package});
         pt.OnOutputReceived = original_handler;
 
-        return apt_out.find("Status: install ok installed") != std::string::npos;
+        return (apt_out.find("Status: install ok installed") != std::string::npos);
     }
 
     void processLine(const std::string& line) {

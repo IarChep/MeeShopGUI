@@ -32,8 +32,7 @@ signals:
     void actionChanged(QString action);
     void actionProgressChanged(QString action, int progress);
     void aptErrorOrWarning(QString type, QString message);
-    void updateFinished();
-    void installationFinished();
+    void aptFinished(int code, QString logs);
 
 public slots:
     void update_repositories();
@@ -60,6 +59,7 @@ private slots:
 
     // Slot to handle process exit
     void handleExited(int code, const QString& output) {
+        emit aptFinished(code, output);
         qDebug().nospace() << "Apt finished. Code: " << code << " Output:\n" << output << "\n";
     }
 

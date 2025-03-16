@@ -28,5 +28,6 @@
         <file>ProcessIndicatorAssets/base-24.png</file>
         <file>qml/Components/SectionHeader.qml</file>
         <file>qml/Pages/AppPage.qml</file>
+        <file>qml/Components/ExtendedIndicator.qml</file>
     </qresource>
 </RCC>

@@ -11,17 +11,16 @@
 #include <QEventLoop>
 #include <QDebug>
 #include <QGradient>
-#include <QtDeclarative/private/qdeclarativerectangle_p.h>
-#include <QtDeclarative/private/qdeclarativelist_p.h>
+#include <QStringList>
 
 namespace MeeShop {
 class Gradienter : public QObject {
     Q_OBJECT
-    Q_PROPERTY(QDeclarativeGradient* gradient READ getGradient() NOTIFY gradientChanged())
+    Q_PROPERTY(QStringList gradientColors READ getGradient() NOTIFY gradientChanged())
 public:
-    explicit Gradienter(QObject *parent = 0) : QObject(parent), m_gradient(new QDeclarativeGradient(this)) {}
-    QDeclarativeGradient* getGradient() {
-        return m_gradient;
+    explicit Gradienter(QObject *parent = 0) : QObject(parent) {}
+    QStringList getGradient() {
+        return m_colors;
     }
 public slots:
     void getGradientColors(QString image_path) {
@@ -36,18 +35,10 @@ public slots:
 
         int middle = image.width() / 2;
 
-        QDeclarativeGradientStop* stop0 = new QDeclarativeGradientStop(m_gradient);
-        stop0->setPosition(0.0);
-        stop0->setColor(QColor(image.pixel(middle, 5)));
+        m_colors.clear();
 
-        QDeclarativeGradientStop* stop1 = new QDeclarativeGradientStop(m_gradient);
-        stop1->setPosition(1.0);
-        stop1->setColor(QColor(image.pixel(middle, image.height() - 5)));
-
-        auto stops = m_gradient->stops();
-        stops.clear;
-        stops.append(&stops, stop0);
-        stops.append(&stops, stop1);
+        m_colors.push_back(QColor(image.pixel(middle, 5)).name());
+        m_colors.push_back(QColor(image.pixel(middle, image.height() - 5)).name());
         emit gradientChanged();
 
         reply->deleteLater();
@@ -55,7 +46,7 @@ public slots:
 signals:
     void gradientChanged();
 private:
-    QDeclarativeGradient* m_gradient;
+    QStringList m_colors;
     QNetworkAccessManager manager;
 };
 }

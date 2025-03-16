@@ -6,6 +6,8 @@ import IarChep.MeeShop 1.0
 Page {
     property int appId
     property variant appInfo: api.appInfo
+    property variant gradientColors: gradienter.gradientColors
+    property bool isInstalled;
 
     tools: ToolBarLayout {
         visible: true
@@ -24,10 +26,21 @@ Page {
         flickableDirection: Flickable.VerticalFlick
 
         Rectangle {
+
             id: appPreviewRect
             width: parent.width
             height: 200
-            gradient: gradienter.gradient
+            gradient: Gradient {
+                GradientStop {
+                    position: 0.0
+                    color: gradientColors[0]
+                }
+                GradientStop {
+                    position: 1.0
+                    color: gradientColors[1]
+                }
+            }
+
             Column {
                 anchors.centerIn: parent
                 spacing: 15
@@ -67,14 +80,24 @@ Page {
                     Item {
                         width: 64
                         height: width
-                        ProgressIndicator {
+                        ExtendedIndicator {
                             id: actionIndicator
+                            type: "busy"
                             size: "medium"
                             progress: 0
+                            running: true
                             visible: appRect.indicatorVisible
                             anchors.centerIn: parent
                             Connections {
                                 target: packageManager
+                                onActionChanged: {
+                                    if (action.indexOf("Downloading") !== -1) {
+                                        actionIndicator.type = "progress"
+                                    } else {
+                                        actionIndicator.type = "busy"
+                                    }
+                                }
+
                                 onActionProgressChanged: {
                                     actionIndicator.progress = progress;
                                 }
@@ -101,6 +124,7 @@ Page {
                             onActionChanged: {
                                 actionText.color = "black"
                                 actionText.text = action;
+                                console.log("New qml action", action)
                             }
                             onAptErrorOrWarning: {
                                 if (type === "Error") {
@@ -134,23 +158,36 @@ Page {
             }
 
             Button {
+                id: installButton
                 platformStyle: ButtonStyle {
                     fontPixelSize: 21
                     buttonWidth: 130
                     buttonHeight: 45
                 }
-                id: installButt
-                anchors.right: parent.right
-                anchors.verticalCenter: parent.verticalCenter
-                anchors.rightMargin: 15
-                text: "Install"
+                anchors {
+                    right: parent.right
+                    verticalCenter: parent.verticalCenter
+                    rightMargin: 15
+                }
+                text: isInstalled ? "Installed" : "Install"
+                enabled: text == "Install"
                 onClicked: {
-                    packageManager.install_package(appInfo.package);
+                    packageManager.install_package(appInfo.packages.harmattan.name ? appInfo.packages.harmattan.name : appInfo.package.name);
                     enabled = false;
                     appRect.appIconSize = 40;
                     appRect.indicatorVisible = true;
                 }
             }
+            Connections {
+                target: packageManager
+                onAptFinished: {
+                    installButton.text = "Installed"
+                    appRect.appIconSize = 64
+                    appRect.indicatorVisible = false
+                    actionText.visible = false
+                }
+            }
+
             property int appIconSize: 64
             property bool indicatorVisible: false
         }
@@ -251,8 +288,9 @@ Page {
     Connections {
         target: api
         onAppInfoChanged: {
-            gradienter.getGradientColors(appInfo.icon.url ? appInfo.icon.url : "image://theme/icon-m-content-ovi-store-inverse" )
-            console.log("app info changed");
+            gradienter.getGradientColors(appInfo.icon.url ? appInfo.icon.url : "image://theme/icon-m-content-ovi-store-inverse")
+            packageManager.is_installed(appInfo.packages.harmattan.name ? appInfo.packages.harmattan.name : appInfo.package.name)
+            console.log("app info changed, is installed too");
         }
     }
     Connections {
