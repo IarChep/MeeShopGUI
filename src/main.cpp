@@ -22,8 +22,9 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
 {
     QScopedPointer<QApplication> app(createApplication(argc, argv));
 
-    qmlRegisterType<MeeShop::OpenReposApi>("IarChep.MeeShop", 1, 0, "OpenReposApi");
-    qmlRegisterType<MeeShop::PackageManager>("IarChep.MeeShop", 1, 0, "PackageManager");
+    MeeShop::OpenReposApi api(app.data());
+    MeeShop::PackageManager packageManager(app.data());
+    MeeShop::Gradienter gradienter(app.data());
 
     qmlRegisterType<MeeShop::MeeShopApplicationModel>("IarChep.MeeShop", 1, 0, "ApplicationModel");
     qmlRegisterType<MeeShop::MeeShopCategoriesModel>("IarChep.MeeShop", 1, 0, "CategoriesModel");
@@ -35,8 +36,12 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
     qRegisterMetaType<MeeShop::ApplicationInfo*>();
     qRegisterMetaType<MeeShop::MeeShopApplicationModel*>();
 
-    MeeShop::PackageManager::install_repo();
     QmlApplicationViewer viewer;
+
+    viewer.rootContext()->setContextProperty("api", &api);
+    viewer.rootContext()->setContextProperty("packageManager", &packageManager);
+    viewer.rootContext()->setContextProperty("gradienter", &gradienter);
+
     viewer.setOrientation(QmlApplicationViewer::ScreenOrientationLockPortrait);
     viewer.setSource(QUrl("qrc:/qml/main.qml"));
     viewer.showExpanded();

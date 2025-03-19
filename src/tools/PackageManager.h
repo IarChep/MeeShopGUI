@@ -10,6 +10,13 @@
 #include <algorithm>
 #include "apt/apt.h"
 #include <iostream>
+#include <QDBusConnection>
+#include <QDBusInterface>
+#include <QDBusReply>
+
+#define PKG_SERVICE "com.nokia.package_manager"
+#define PKG_PATH    "/com/nokia/package_manager"
+#define PKG_IFACE   "com.nokia.package_manager"
 
 namespace MeeShop {
 class PackageManager : public QObject
@@ -17,16 +24,14 @@ class PackageManager : public QObject
     Q_OBJECT
 
 public:
-    explicit PackageManager(QObject *parent = 0) : QObject(parent), apt("/usr/bin/aegis-apt-get") {
+    explicit PackageManager(QObject *parent = 0): QObject(parent), apt("/usr/bin/aegis-apt-get"), bus(QDBusConnection::systemBus()) {
         connect(&apt, SIGNAL(actionChanged(const QString&)), this, SLOT(handleActionChanged(const QString&)));
         connect(&apt, SIGNAL(progressChanged(const QString&, int)), this, SLOT(handleProgressChanged(const QString&, int)));
         connect(&apt, SIGNAL(errorOrWarning(const QString, const QString&)), this, SLOT(handleErrorOrWarning(const QString&, const QString&)));
         connect(&apt, SIGNAL(exited(int, const QString&)), this, SLOT(handleExited(int, const QString&)));
 
+        bus.connect(PKG_SERVICE,PKG_PATH,PKG_IFACE,"package_list_updated",this,SLOT(onPkgPackageListUpdate(bool)));
     }
-
-    static void install_repo();
-    void check_root();
 
 signals:
     void actionChanged(QString action);
@@ -38,6 +43,7 @@ public slots:
     void update_repositories();
     void install_package(QString package);
     bool is_installed(QString package);
+    void cacheInstalledApplications();
 
 private slots:
     void handleActionChanged(const QString& action) {
@@ -65,6 +71,8 @@ private slots:
 
 private:
     AptTools apt;
+    QDBusConnection bus;
+    QVariantList installedPackages;
 };
 
 }

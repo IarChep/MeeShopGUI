@@ -25,7 +25,7 @@ add_executable(meeshop ${SOURCES} ${HEADERS} ${RESOURCES})
 
 set_target_properties(meeshop PROPERTIES AUTOMOC ON AUTORCC ON)
 
-target_link_libraries(meeshop PRIVATE Qt4::QtCore Qt4::QtGui Qt4::QtDeclarative Qt4::QtNetwork Qt4::QtSvg nlohmann_json::nlohmann_json Threads::Threads X11::X11 util)
+target_link_libraries(meeshop PRIVATE Qt4::QtCore Qt4::QtDBus Qt4::QtGui Qt4::QtDeclarative Qt4::QtNetwork Qt4::QtSvg nlohmann_json::nlohmann_json Threads::Threads X11::X11 util)
 
 if (BUILD_N9)
     pkg_check_modules(boostable ${CMAKE_SYSROOT}/usr/lib/pkgconfig/qdeclarative-boostable.pc REQUIRED)

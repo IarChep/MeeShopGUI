@@ -29,21 +29,7 @@ SwipePageStackWindow {
         AppPage {}
     }
 
-    OpenReposApi {
-        id: api
-
-    }
-
-    Gradienter {
-        id: gradienter
-    }
-
     CategoriesSheet {
         id: catSheet
     }
-
-    PackageManager {
-        id: packageManager
-    }
-
 }

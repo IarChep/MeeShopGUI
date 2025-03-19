@@ -170,7 +170,7 @@ Page {
                     rightMargin: 15
                 }
                 text: isInstalled ? "Installed" : "Install"
-                enabled: text == "Install"
+                enabled: !isInstalled
                 onClicked: {
                     packageManager.install_package(appInfo.packages.harmattan.name ? appInfo.packages.harmattan.name : appInfo.package.name);
                     enabled = false;
