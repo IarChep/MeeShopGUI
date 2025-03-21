@@ -43,45 +43,6 @@ void OpenReposApi::getAppComments(int app_id) {
     //QObject::connect(reply, SIGNAL(finished()), this, SLOT(process_reply()));
 }
 
-nlohmann::json OpenReposApi::parseJson(const QByteArray& data) {
-    std::string dataStr(data.constData(), data.size());
-    if (nlohmann::json::accept(dataStr)) {
-        return nlohmann::json::parse(dataStr);
-    } else {
-        return {};
-    }
-}
-QVariant OpenReposApi::jsonToVariant(const nlohmann::json &j) {
-    if (j.is_object()) {
-        QVariantMap map;
-        for (auto it = j.begin(); it != j.end(); ++it) {
-            QString key = QString::fromStdString(it.key());
-            map.insert(key, jsonToVariant(it.value()));
-        }
-        return map;
-    } else if (j.is_array()) {
-        QVariantList list;
-        for (const auto &item : j) {
-            list.append(jsonToVariant(item));
-        }
-        return list;
-    } else if (j.is_string()) {
-        return QString::fromStdString(j.get<std::string>()).trimmed();
-    } else if (j.is_boolean()) {
-        return j.get<bool>();
-    } else if (j.is_number_integer()) {
-        return j.get<int>();
-    } else if (j.is_number_unsigned()) {
-        return j.get<unsigned int>();
-    } else if (j.is_number_float()) {
-        return j.get<double>();
-    } else if (j.is_null()) {
-        return QVariant();
-    }
-
-    return QVariant();
-}
-
 void OpenReposApi::process_apps() {
     QNetworkReply* reply = qobject_cast<QNetworkReply*>(sender());
     if (reply->error() == QNetworkReply::NoError) {
@@ -124,5 +85,44 @@ void OpenReposApi::process_app() {
         qDebug() << "something is failed!";
     }
     reply->deleteLater();
+}
+
+nlohmann::json OpenReposApi::parseJson(const QByteArray& data) {
+    std::string dataStr(data.constData(), data.size());
+    if (nlohmann::json::accept(dataStr)) {
+        return nlohmann::json::parse(dataStr);
+    } else {
+        return {};
+    }
+}
+QVariant OpenReposApi::jsonToVariant(const nlohmann::json &j) {
+    if (j.is_object()) {
+        QVariantMap map;
+        for (auto it = j.begin(); it != j.end(); ++it) {
+            QString key = QString::fromStdString(it.key());
+            map.insert(key, jsonToVariant(it.value()));
+        }
+        return map;
+    } else if (j.is_array()) {
+        QVariantList list;
+        for (const auto &item : j) {
+            list.append(jsonToVariant(item));
+        }
+        return list;
+    } else if (j.is_string()) {
+        return QString::fromStdString(j.get<std::string>());
+    } else if (j.is_boolean()) {
+        return j.get<bool>();
+    } else if (j.is_number_integer()) {
+        return j.get<int>();
+    } else if (j.is_number_unsigned()) {
+        return j.get<unsigned int>();
+    } else if (j.is_number_float()) {
+        return j.get<double>();
+    } else if (j.is_null()) {
+        return QVariant();
+    }
+
+    return QVariant();
 }
 }

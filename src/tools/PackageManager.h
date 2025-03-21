@@ -10,6 +10,7 @@
 #include <algorithm>
 #include "apt/apt.h"
 #include <iostream>
+
 #include <QDBusConnection>
 #include <QDBusInterface>
 #include <QDBusReply>
@@ -29,8 +30,7 @@ public:
         connect(&apt, SIGNAL(progressChanged(const QString&, int)), this, SLOT(handleProgressChanged(const QString&, int)));
         connect(&apt, SIGNAL(errorOrWarning(const QString, const QString&)), this, SLOT(handleErrorOrWarning(const QString&, const QString&)));
         connect(&apt, SIGNAL(exited(int, const QString&)), this, SLOT(handleExited(int, const QString&)));
-
-        bus.connect(PKG_SERVICE,PKG_PATH,PKG_IFACE,"package_list_updated",this,SLOT(onPkgPackageListUpdate(bool)));
+        //qDebug() << "Package list update connected:" << bus.connect(PKG_SERVICE,PKG_PATH,PKG_IFACE,"package_list_updated",this,SLOT(onPkgPackageListUpdate(bool)));
     }
 
 signals:
@@ -44,6 +44,7 @@ public slots:
     void install_package(QString package);
     bool is_installed(QString package);
     void cacheInstalledApplications();
+    void printInstalledPackages();
 
 private slots:
     void handleActionChanged(const QString& action) {
@@ -68,11 +69,18 @@ private slots:
         emit aptFinished(code, output);
         qDebug().nospace() << "Apt finished. Code: " << code << " Output:\n" << output << "\n";
     }
-
+    void onPkgPackageListUpdate(bool updates) {
+        if (updates) {
+            qDebug() << "Apdating packages list";
+            cacheInstalledApplications();
+        }
+    }
 private:
     AptTools apt;
     QDBusConnection bus;
-    QVariantList installedPackages;
+    QVariantMap installedPackages;
+    QString lastInstalledPackage;
+
 };
 
 }

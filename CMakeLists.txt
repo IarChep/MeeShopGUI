@@ -33,7 +33,6 @@ if (BUILD_N9)
     target_compile_options(meeshop PRIVATE ${boostable_CFLAGS})
     target_include_directories(meeshop PRIVATE ${CMAKE_SYSROOT}${boostable_INCLUDE_DIRS})
     target_link_options(meeshop PRIVATE -static-libstdc++ -Wl,--dynamic-linker,/lib/ld-linux.so.3 -pie -rdynamic -lmdeclarativecache)
-
     # Copy the entire debian directory
     add_custom_target(copy_debian_dir
         COMMAND ${CMAKE_COMMAND} -E copy_directory

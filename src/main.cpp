@@ -16,18 +16,26 @@
 #include "qml_elements/nokiashape.h"
 #include "qml_elements/ProgressIndicator.h"
 #include "structs/applicationinfo.h"
+#include <QTextCodec>
+
 
 
 Q_DECL_EXPORT int main(int argc, char *argv[])
 {
     QScopedPointer<QApplication> app(createApplication(argc, argv));
+    QTextCodec *utfCodec = QTextCodec::codecForName("UTF-8");
+        QTextCodec::setCodecForLocale(utfCodec);          // Локаль
+        QTextCodec::setCodecForCStrings(utfCodec);        // C-строки (QString::fromUtf8 и т.д.)
+        QTextCodec::setCodecForTr(utfCodec);
 
     MeeShop::OpenReposApi api(app.data());
     MeeShop::PackageManager packageManager(app.data());
     MeeShop::Gradienter gradienter(app.data());
 
-    qmlRegisterType<MeeShop::MeeShopApplicationModel>("IarChep.MeeShop", 1, 0, "ApplicationModel");
-    qmlRegisterType<MeeShop::MeeShopCategoriesModel>("IarChep.MeeShop", 1, 0, "CategoriesModel");
+        packageManager.printInstalledPackages();
+
+    qmlRegisterUncreatableType<MeeShop::MeeShopApplicationModel>("IarChep.MeeShop", 1, 0, "ApplicationModel", "ApplicationModel is a read-only type!");
+    qmlRegisterUncreatableType<MeeShop::MeeShopCategoriesModel>("IarChep.MeeShop", 1, 0, "CategoriesModel", "CategoriesModel is a read-only type!");
 
     qmlRegisterType<MeeShop::Gradienter>("IarChep.MeeShop", 1, 0, "Gradienter");
     qmlRegisterType<MeeShop::NokiaShape>("IarChep.MeeShop", 1, 0, "NokiaShape");
@@ -45,6 +53,9 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
     viewer.setOrientation(QmlApplicationViewer::ScreenOrientationLockPortrait);
     viewer.setSource(QUrl("qrc:/qml/main.qml"));
     viewer.showExpanded();
+
+
+    //packageManager.cacheInstalledApplications();
 
     SwipeControl * swipeControl = new SwipeControl(&viewer, true);
 

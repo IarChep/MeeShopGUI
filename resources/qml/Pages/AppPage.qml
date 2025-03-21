@@ -289,13 +289,13 @@ Page {
         target: api
         onAppInfoChanged: {
             gradienter.getGradientColors(appInfo.icon.url ? appInfo.icon.url : "image://theme/icon-m-content-ovi-store-inverse")
-            packageManager.is_installed(appInfo.packages.harmattan.name ? appInfo.packages.harmattan.name : appInfo.package.name)
-            console.log("app info changed, is installed too");
+            console.log("app info changed");
         }
     }
     Connections {
         target: gradienter
         onGradientChanged: {
+            isInstalled = packageManager.is_installed(appInfo.packages.harmattan.name)
             waiter.hide();
         }
     }
