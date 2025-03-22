@@ -68,15 +68,21 @@ Page {
         Rectangle {
             id: appRect
             width: parent.width
-            height: 100
+            height: 170
             y: appPreviewRect.height
             color: "#e0e1e2"
             z: 1
-            Row {
-                x: 15
+            Column {
+                width: parent.width
                 anchors.verticalCenter: parent.verticalCenter
-                spacing: 15
-                Column {
+                spacing: 10
+                Row {
+                    anchors {
+                        right: parent.right
+                        left: parent.left
+                        leftMargin: 15
+                    }
+                    spacing: 15
                     Item {
                         width: 64
                         height: width
@@ -116,68 +122,84 @@ Page {
                             }
                         }
                     }
-                    Text {
-                        id: actionText
-                        visible: true
-                        Connections {
-                            target: packageManager
-                            onActionChanged: {
-                                actionText.color = "black"
-                                actionText.text = action;
-                                console.log("New qml action", action)
-                            }
-                            onAptErrorOrWarning: {
-                                if (type === "Error") {
-                                    actionText.color = "red"
-                                } else if (type === "Warning") {
-                                    actionText.color = "yellow"
-                                }
-                                actionText.text = message
-                            }
+                    //                Text {
+                    //                    id: actionText
+                    //                    visible: true
+                    //                    Connections {
+                    //                        target: packageManager
+                    //                        onActionChanged: {
+                    //                            actionText.color = "black"
+                    //                            actionText.text = action;
+                    //                            console.log("New qml action", action)
+                    //                        }
+                    //                        onAptErrorOrWarning: {
+                    //                            if (type === "Error") {
+                    //                                actionText.color = "red"
+                    //                            } else if (type === "Warning") {
+                    //                                actionText.color = "yellow"
+                    //                            }
+                    //                            actionText.text = message
+                    //                        }
+                    //                    }
+                    //                }
+
+
+                    Column {
+                        Text {
+                            text: appInfo.title
+                            color: "black"
+                            font.pixelSize: 25
+                        }
+                        Text {
+                            text: "By: " + appInfo.user.name
+                            color: "black"
+                            font.pixelSize: 20
                         }
                     }
                 }
+                ButtonRow {
+                    property alias deleteButtonVisible: deleteButton.visible
+                    property alias updateButtonVisible: updateButton.visible
+                    property alias installButtonVisible: installButton.visible
 
-                Column {
-                    Text {
-                        text: appInfo.title
-                        color: "black"
-                        font.pixelSize: 25
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    exclusive: false
+                    Button {
+                        id: deleteButton
+                        text: "Delete"
                     }
-                    Text {
-                        text: "By: " + appInfo.user.name
-                        color: "black"
-                        font.pixelSize: 20
+                    Button {
+                        id: updateButton
+                        text: "Update"
                     }
-                }
-                Text {
-                    id: statusText
-                    y: 80
-                    font.pixelSize: 23
+                    Button {
+                        id: installButton
+                        text: "Install"
+                    }
                 }
             }
 
-            Button {
-                id: installButton
-                platformStyle: ButtonStyle {
-                    fontPixelSize: 21
-                    buttonWidth: 130
-                    buttonHeight: 45
-                }
-                anchors {
-                    right: parent.right
-                    verticalCenter: parent.verticalCenter
-                    rightMargin: 15
-                }
-                text: isInstalled ? "Installed" : "Install"
-                enabled: !isInstalled
-                onClicked: {
-                    packageManager.install_package(appInfo.packages.harmattan.name ? appInfo.packages.harmattan.name : appInfo.package.name);
-                    enabled = false;
-                    appRect.appIconSize = 40;
-                    appRect.indicatorVisible = true;
-                }
-            }
+            //            Button {
+            //                id: installButton
+            //                platformStyle: ButtonStyle {
+            //                    fontPixelSize: 21
+            //                    buttonWidth: 130
+            //                    buttonHeight: 45
+            //                }
+            //                anchors {
+            //                    right: parent.right
+            //                    verticalCenter: parent.verticalCenter
+            //                    rightMargin: 15
+            //                }
+            //                text: isInstalled ? "Installed" : "Install"
+            //                enabled: !isInstalled
+            //                onClicked: {
+            //                    packageManager.install_package(appInfo.packages.harmattan.name ? appInfo.packages.harmattan.name : appInfo.package.name);
+            //                    enabled = false;
+            //                    appRect.appIconSize = 40;
+            //                    appRect.indicatorVisible = true;
+            //                }
+            //            }
             Connections {
                 target: packageManager
                 onAptFinished: {
@@ -191,7 +213,6 @@ Page {
             property int appIconSize: 64
             property bool indicatorVisible: false
         }
-
 
         Column {
             id: infoColumn
@@ -274,8 +295,8 @@ Page {
             else
                 appRect.y = appPreviewRect.height;
         }
-
     }
+
     Waiter { id: waiter }
 
     onStatusChanged: {

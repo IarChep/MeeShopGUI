@@ -10,7 +10,7 @@ Page {
 
     property int page: 0
     property string categoryName: "Apps"
-    property string title : "<b>Meeshop</b>: " + categoryName
+    property string title : "<b>MeeShop</b>: " + categoryName
     property int count: 0
     property int category: 1
     property bool isSearch: false

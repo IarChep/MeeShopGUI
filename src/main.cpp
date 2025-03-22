@@ -32,7 +32,7 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
     MeeShop::PackageManager packageManager(app.data());
     MeeShop::Gradienter gradienter(app.data());
 
-        packageManager.printInstalledPackages();
+    packageManager.cacheInstalledPackages();
 
     qmlRegisterUncreatableType<MeeShop::MeeShopApplicationModel>("IarChep.MeeShop", 1, 0, "ApplicationModel", "ApplicationModel is a read-only type!");
     qmlRegisterUncreatableType<MeeShop::MeeShopCategoriesModel>("IarChep.MeeShop", 1, 0, "CategoriesModel", "CategoriesModel is a read-only type!");

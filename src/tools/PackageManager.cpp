@@ -1,44 +1,27 @@
 #include "PackageManager.h"
 
 
-bool MeeShop::PackageManager::is_installed(QString package) {
-    qDebug() << "Checking package" << package;;
-    return (installedPackages[package].toMap()["Status"] == "install ok installed");
+MeeShop::PackageManager::PackageStatus MeeShop::PackageManager::isInstalled(QString package) {
+    qDebug() << "Checking package" << package;
+    if (installedPackages.contains(package)) {
+        QVariantMap pkg = installedPackages.value(package).toMap();
+        if (installedPackages[package].toMap()["Status"] == "install ok installed") {
+            return MeeShop::PackageManager::PackageStatus::Installed;
+        }
+    }
+    return MeeShop::PackageManager::PackageStatus::NotInstalled;
 }
 
-void MeeShop::PackageManager::update_repositories() {
+void MeeShop::PackageManager::updateRepositories() {
     apt.updateRepos();
 }
 
-void MeeShop::PackageManager::install_package(QString package) {
+void MeeShop::PackageManager::installPackage(QString package) {
     qDebug() << "installing package " << package;
     apt.installPackage(package.toStdString());
 }
 
-void MeeShop::PackageManager::cacheInstalledApplications() {
-    installedPackages.clear();
-    QDBusMessage msg = QDBusMessage::createMethodCall(PKG_SERVICE, PKG_PATH, PKG_IFACE, "fetch_installed");
-    QDBusReply<QDBusArgument> reply = bus.call(msg, QDBus::Block, 60000);
-    if (reply.isValid()) {
-        QDBusArgument var = reply.value();
-        var.beginArray();
-        while (!var.atEnd()) {
-            QVariantMap package;
-            var >> package;
-            QString packageName = package.value("Name").toString();
-            if (!packageName.isEmpty()) {
-                installedPackages[packageName] = package;
-                qDebug() << "Added package to map with key:" << packageName;
-            } else {
-                qWarning() << "Package without a name encountered, skipping.";
-            }
-        }
-    } else {
-        qWarning() << "Can't cache installed applications" << reply.error().message();
-    }
-    QFile("/var/lib/dpkg/lock").remove();
-}
-void MeeShop::PackageManager::printInstalledPackages() {
+void MeeShop::PackageManager::cacheInstalledPackages() {
     installedPackages.clear();
     QFile file("/var/lib/dpkg/status");
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
@@ -104,4 +87,29 @@ void MeeShop::PackageManager::printInstalledPackages() {
                     << "  Описание: " << data["Description"].toString();
         }
     }
+}
+void MeeShop::PackageManager::cacheEnabledRepositories() {
+    enabledRepositories.clear();
+
+    QDir dir("/etc/apt/sources.list.d");
+    dir.setFilter(QDir::Files | QDir::Hidden | QDir::NoSymLinks);
+    dir.setNameFilters(QStringList("meeshop-*.list*"));
+    QFileInfoList list = dir.entryInfoList();
+    for (const auto& info : list) {
+        QString reponame = info.baseName();
+        reponame.replace("meeshop-","");
+        enabledRepositories[reponame] = (info.completeSuffix() == "list");
+    }
+}
+void MeeShop::PackageManager::enableRepository(QString name) {
+    QFile repo(QString("/etc/apt/sources.list.d/meeshop-%1.list").arg(name));
+    QString repositoryString = QString("deb http://harmattan.openrepos.net/%1 personal main").arg(name);
+    repo.open(QIODevice::WriteOnly | QIODevice::Text);
+    repo.write(repositoryString.toLocal8Bit());
+    repo.close();
+    cacheEnabledRepositories();
+}
+void MeeShop::PackageManager::disableRepository(QString name) {
+    QFile::remove(QString("/etc/apt/sources.list.d/meeshop-%1.list").arg(name));
+    cacheEnabledRepositories();
 }

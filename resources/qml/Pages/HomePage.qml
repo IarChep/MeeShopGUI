@@ -10,17 +10,12 @@ Page {
     id: page
     orientationLock: PageOrientation.LockPortrait
 
-    property string title: "<b>Meeshop</b>: Home"
+    property string title: "<b>MeeShop</b>: Home"
     property int count: 0
 
     Header {id: header}
 
-    ExtendedIndicator {
-        type: "busy"
-        running: true
-        size: "big"
-        anchors.centerIn: parent
-    }
+
 
     // do not touch, SwipePageStackWindow connections!
     Connections{

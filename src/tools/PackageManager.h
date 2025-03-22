@@ -4,34 +4,33 @@
 #include <QObject>
 #include <QString>
 #include <QFile>
+#include <QDir>
 #include <QDebug>
 #include <QProcess>
-#include <QStringList>
-#include <algorithm>
+#include <QVariant>
+#include <QVariantMap>
+
 #include "apt/apt.h"
 #include <iostream>
-
-#include <QDBusConnection>
-#include <QDBusInterface>
-#include <QDBusReply>
-
-#define PKG_SERVICE "com.nokia.package_manager"
-#define PKG_PATH    "/com/nokia/package_manager"
-#define PKG_IFACE   "com.nokia.package_manager"
 
 namespace MeeShop {
 class PackageManager : public QObject
 {
     Q_OBJECT
-
+    Q_ENUMS(MeeShop::PackageManager::PackageStatus)
 public:
-    explicit PackageManager(QObject *parent = 0): QObject(parent), apt("/usr/bin/aegis-apt-get"), bus(QDBusConnection::systemBus()) {
+    explicit PackageManager(QObject *parent = 0): QObject(parent), apt("/usr/bin/aegis-apt-get") {
         connect(&apt, SIGNAL(actionChanged(const QString&)), this, SLOT(handleActionChanged(const QString&)));
         connect(&apt, SIGNAL(progressChanged(const QString&, int)), this, SLOT(handleProgressChanged(const QString&, int)));
         connect(&apt, SIGNAL(errorOrWarning(const QString, const QString&)), this, SLOT(handleErrorOrWarning(const QString&, const QString&)));
         connect(&apt, SIGNAL(exited(int, const QString&)), this, SLOT(handleExited(int, const QString&)));
-        //qDebug() << "Package list update connected:" << bus.connect(PKG_SERVICE,PKG_PATH,PKG_IFACE,"package_list_updated",this,SLOT(onPkgPackageListUpdate(bool)));
     }
+
+    enum PackageStatus {
+        Installed = 0,
+        Updatable,
+        NotInstalled
+    };
 
 signals:
     void actionChanged(QString action);
@@ -40,11 +39,16 @@ signals:
     void aptFinished(int code, QString logs);
 
 public slots:
-    void update_repositories();
-    void install_package(QString package);
-    bool is_installed(QString package);
-    void cacheInstalledApplications();
-    void printInstalledPackages();
+    void installPackage(QString package);
+
+    void cacheEnabledRepositories();
+    bool isRepositoryEnable(QString name);
+    void enableRepository(QString name);
+    void disableRepository(QString name);
+    void updateRepositories();
+
+    MeeShop::PackageManager::PackageStatus isInstalled(QString package);
+    void cacheInstalledPackages();
 
 private slots:
     void handleActionChanged(const QString& action) {
@@ -69,17 +73,10 @@ private slots:
         emit aptFinished(code, output);
         qDebug().nospace() << "Apt finished. Code: " << code << " Output:\n" << output << "\n";
     }
-    void onPkgPackageListUpdate(bool updates) {
-        if (updates) {
-            qDebug() << "Apdating packages list";
-            cacheInstalledApplications();
-        }
-    }
 private:
     AptTools apt;
-    QDBusConnection bus;
     QVariantMap installedPackages;
-    QString lastInstalledPackage;
+    QVariantMap enabledRepositories;
 
 };
 
