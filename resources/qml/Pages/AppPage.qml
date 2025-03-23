@@ -7,8 +7,8 @@ Page {
     property int appId
     property variant appInfo: api.appInfo
     property variant gradientColors: gradienter.gradientColors
-    property bool isInstalled;
 
+    orientationLock: PageOrientation.LockPortrait
     tools: ToolBarLayout {
         visible: true
         ToolIcon {
@@ -158,12 +158,18 @@ Page {
                     }
                 }
                 ButtonRow {
-                    property alias deleteButtonVisible: deleteButton.visible
-                    property alias updateButtonVisible: updateButton.visible
-                    property alias installButtonVisible: installButton.visible
-
                     anchors.horizontalCenter: parent.horizontalCenter
                     exclusive: false
+                    Button {
+                        id: repositoryButton
+                        text: "Enable repository"
+                        onClicked: {
+                            enabled = false
+                            installationStatus.visible = true
+                            packageManager.enableRepository(appInfo.user.name)
+                            packageManager.updateRepositories()
+                        }
+                    }
                     Button {
                         id: deleteButton
                         text: "Delete"
@@ -175,6 +181,25 @@ Page {
                     Button {
                         id: installButton
                         text: "Install"
+                    }
+                    Connections {
+                        target: packageManager
+                        onUpdateFinished: {
+                            if (code == 0) {
+                                if(packageManager.isRepositoryEnabled(appInfo.user.name)) {
+                                    var stat = packageManager.isInstalled(appInfo.packages.harmattan.name, appInfo.user.name)
+                                    repositoryButton.visible = false
+                                    if (stat == packageManager.Installed) {
+                                        updateButton.visible = false
+                                    } else if (stat == packageManager.Updatable) {
+                                        installButton.visible = false
+                                    } else if (stat == packageManager.NotInstalled) {
+                                        deleteButton.visible = false
+                                        updateButton.visible = false
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -218,6 +243,44 @@ Page {
             id: infoColumn
             width: parent.width
             y: appPreviewRect.height + appRect.height
+            Column {
+                id: installationStatus
+                width: parent.width
+                visible: false
+                SectionHeader {
+                    text: "Installation status"
+                }
+                Text {
+                    id: aptText
+                    font.pixelSize: 20
+                    anchors {
+                        left: parent.left
+                        leftMargin: 10
+                        right: parent.right
+                        rightMargin: 10
+                    }
+                    horizontalAlignment: Text.AlignHCenter
+                    wrapMode: Text.WordWrap
+                    Connections {
+                        target: packageManager
+                        onActionChanged: {
+                            aptText.color = "black"
+                            aptText.text = action;
+                            console.log("New qml action", action)
+                        }
+                        onAptErrorOrWarning: {
+                            if (type === "Error") {
+                                aptText.color = "red"
+                            } else if (type === "Warning") {
+                                aptText.color = "orange"
+                            }
+                            aptText.text = message
+                        }
+                    }
+                }
+            }
+
+
             SectionHeader {
                 text: "Information"
             }
@@ -316,7 +379,29 @@ Page {
     Connections {
         target: gradienter
         onGradientChanged: {
-            isInstalled = packageManager.is_installed(appInfo.packages.harmattan.name)
+            if(packageManager.isRepositoryEnabled(appInfo.user.name)) {
+                var stat = packageManager.isInstalled(appInfo.packages.harmattan.name, appInfo.user.name)
+                console.log(stat)
+                repositoryButton.visible = false
+                if (stat === "Installed") {
+                    console.log("QML recieved installed")
+                    installButton.visible = false
+                    updateButton.visible = false
+                } else if (stat === "Updatable") {
+                    console.log("QML recieved updatable")
+                    installButton.visible = false
+                    updateButton.visible = true
+                } else if (stat === "NotInstalled") {
+                    console.log("QML recieved not installed")
+                    deleteButton.visible = false
+                    updateButton.visible = false
+                }
+            } else {
+                deleteButton.visible = false
+                updateButton.visible = false
+                installButton.visible = false
+            }
+
             waiter.hide();
         }
     }

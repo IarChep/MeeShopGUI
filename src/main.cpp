@@ -24,18 +24,21 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
 {
     QScopedPointer<QApplication> app(createApplication(argc, argv));
     QTextCodec *utfCodec = QTextCodec::codecForName("UTF-8");
-        QTextCodec::setCodecForLocale(utfCodec);          // Локаль
-        QTextCodec::setCodecForCStrings(utfCodec);        // C-строки (QString::fromUtf8 и т.д.)
-        QTextCodec::setCodecForTr(utfCodec);
+    QTextCodec::setCodecForLocale(utfCodec);          // Локаль
+    QTextCodec::setCodecForCStrings(utfCodec);        // C-строки (QString::fromUtf8 и т.д.)
+    QTextCodec::setCodecForTr(utfCodec);
 
     MeeShop::OpenReposApi api(app.data());
     MeeShop::PackageManager packageManager(app.data());
     MeeShop::Gradienter gradienter(app.data());
 
     packageManager.cacheInstalledPackages();
+    packageManager.cacheEnabledRepositories();
 
     qmlRegisterUncreatableType<MeeShop::MeeShopApplicationModel>("IarChep.MeeShop", 1, 0, "ApplicationModel", "ApplicationModel is a read-only type!");
     qmlRegisterUncreatableType<MeeShop::MeeShopCategoriesModel>("IarChep.MeeShop", 1, 0, "CategoriesModel", "CategoriesModel is a read-only type!");
+    //qmlRegisterUncreatableType<MeeShop::PackageManager::PackageStatus>("IarChep.MeeShop", 1, 0, "PackageStatus", "PackageStatus is a read-only ENUM!");
+    qmlRegisterUncreatableType<MeeShop::PackageManager>("IarChep.MeeShop", 1, 0, "PackageManager", "PackageManager is registered only for enum!");
 
     qmlRegisterType<MeeShop::Gradienter>("IarChep.MeeShop", 1, 0, "Gradienter");
     qmlRegisterType<MeeShop::NokiaShape>("IarChep.MeeShop", 1, 0, "NokiaShape");
