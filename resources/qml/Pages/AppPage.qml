@@ -122,26 +122,6 @@ Page {
                             }
                         }
                     }
-                    //                Text {
-                    //                    id: actionText
-                    //                    visible: true
-                    //                    Connections {
-                    //                        target: packageManager
-                    //                        onActionChanged: {
-                    //                            actionText.color = "black"
-                    //                            actionText.text = action;
-                    //                            console.log("New qml action", action)
-                    //                        }
-                    //                        onAptErrorOrWarning: {
-                    //                            if (type === "Error") {
-                    //                                actionText.color = "red"
-                    //                            } else if (type === "Warning") {
-                    //                                actionText.color = "yellow"
-                    //                            }
-                    //                            actionText.text = message
-                    //                        }
-                    //                    }
-                    //                }
 
 
                     Column {
@@ -167,6 +147,8 @@ Page {
                             enabled = false
                             installationStatus.visible = true
                             packageManager.enableRepository(appInfo.user.name)
+                            appRect.indicatorVisible = true
+                            appRect.appIconSize = 40;
                             packageManager.updateRepositories()
                         }
                     }
@@ -180,6 +162,7 @@ Page {
                         onClicked: {
                             enabled = false
                             installationStatus.visible = true;
+                            actionIndicator.visible = true
                             packageManager.installPackage(appInfo.packages.harmattan.name ? appInfo.packages.harmattan.name : appInfo.package.name)
                         }
                     }
@@ -188,7 +171,8 @@ Page {
                         text: "Install"
                         onClicked: {
                             enabled = false
-                            installationStatus.visible = true
+                            appRect.indicatorVisible = true
+                            appRect.appIconSize = 40;
                             packageManager.installPackage(appInfo.packages.harmattan.name ? appInfo.packages.harmattan.name : appInfo.package.name)
                         }
                     }
@@ -211,16 +195,18 @@ Page {
                                 } else {
                                     repositoryButton.enabled = true
                                 }
+                                appRect.appIconSize = 64
+                                appRect.indicatorVisible = false
                             }
                         }
-                        onAptFinished: {
+                        onInstallationFinished: {
+                            packageManager.cacheInstalledPackages()
                             installButton.visible = false
                             updateButton.visible = false
                             deleteButton.visible = true
 
                             appRect.appIconSize = 64
                             appRect.indicatorVisible = false
-                            actionText.visible = false
                         }
 
                     }
