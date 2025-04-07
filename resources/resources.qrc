@@ -6,7 +6,6 @@
         <file>qml/Components/AppDelegate.qml</file>
         <file>qml/Components/constants.js</file>
         <file>qml/Components/Header.qml</file>
-        <file>qml/Components/InstallationRectangle.qml</file>
         <file>qml/Components/SwipeListDelegate.qml</file>
         <file>qml/Components/SwipePageStackWindow.qml</file>
         <file>qml/Components/UIConstants.js</file>
@@ -14,7 +13,6 @@
         <file>images/rss-page-icon.png</file>
         <file>qml/Components/CategoryDelegate.qml</file>
         <file>images/headerImage.png</file>
-        <file>qml/Components/TextAreaHelper.js</file>
         <file>qml/Components/CategoriesSheet.qml</file>
         <file>qml/Components/Waiter.qml</file>
         <file>qml/Components/TextCollapsible.qml</file>
