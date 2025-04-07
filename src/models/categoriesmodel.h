@@ -11,7 +11,7 @@
 using json = nlohmann::json;
 
 namespace MeeShop {
-class MeeShopCategoriesModel : public QAbstractListModel
+class CategoriesModel : public QAbstractListModel
 {
     Q_OBJECT
     Q_PROPERTY(int count READ getCount NOTIFY countChanged)
@@ -23,7 +23,15 @@ public:
         CategoryNameRole
     };
 
-    MeeShopCategoriesModel(QObject *parent = 0);
+    explicit CategoriesModel(QObject *parent = 0) : QAbstractListModel(parent), m_expandedCategory("")
+    {
+        QHash<int, QByteArray> roles;
+        roles[CategoryAmountRole] = "categoryAmount";
+        roles[CategoryKidsRole] = "categoryKids";
+        roles[CategoryIdRole] = "categoryId";
+        roles[CategoryNameRole] = "categoryName";
+        setRoleNames(roles);
+    }
 
     int getCount() { return m_json.size(); }
 

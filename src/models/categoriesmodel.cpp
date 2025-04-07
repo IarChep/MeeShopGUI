@@ -1,17 +1,9 @@
-#include "MeeShopCategoriesModel.h"
+#include "categoriesmodel.h"
 
-MeeShop::MeeShopCategoriesModel::MeeShopCategoriesModel(QObject *parent)
-    : QAbstractListModel(parent), m_expandedCategory("")
-{
-    QHash<int, QByteArray> roles;
-    roles[CategoryAmountRole] = "categoryAmount";
-    roles[CategoryKidsRole] = "categoryKids";
-    roles[CategoryIdRole] = "categoryId";
-    roles[CategoryNameRole] = "categoryName";
-    setRoleNames(roles);
-}
 
-void MeeShop::MeeShopCategoriesModel::setJson(const json &jsonDoc)
+namespace MeeShop {
+
+void CategoriesModel::setJson(const json &jsonDoc)
 {
     beginResetModel();
     m_json = jsonDoc;
@@ -20,7 +12,7 @@ void MeeShop::MeeShopCategoriesModel::setJson(const json &jsonDoc)
     emit countChanged();
 }
 
-int MeeShop::MeeShopCategoriesModel::rowCount(const QModelIndex &parent) const {
+int CategoriesModel::rowCount(const QModelIndex &parent) const {
     if (parent.isValid())
         return 0;
 
@@ -34,7 +26,7 @@ int MeeShop::MeeShopCategoriesModel::rowCount(const QModelIndex &parent) const {
     return count;
 }
 
-QVariant MeeShop::MeeShopCategoriesModel::data(const QModelIndex &index, int role) const {
+QVariant CategoriesModel::data(const QModelIndex &index, int role) const {
     if (!index.isValid() || index.row() < 0 || index.row() >= rowCount())
         return QVariant();
 
@@ -56,7 +48,7 @@ QVariant MeeShop::MeeShopCategoriesModel::data(const QModelIndex &index, int rol
     return QVariant();
 }
 
-QVariant MeeShop::MeeShopCategoriesModel::getCategoryData(const json &category, int role) const {
+QVariant CategoriesModel::getCategoryData(const json &category, int role) const {
     switch (role) {
     case CategoryAmountRole:
         if (category.contains("apps_count")) {
@@ -87,7 +79,7 @@ QVariant MeeShop::MeeShopCategoriesModel::getCategoryData(const json &category, 
 }
 
 
-void MeeShop::MeeShopCategoriesModel::toggleKids(const QString &categoryName) {
+void CategoriesModel::toggleKids(const QString &categoryName) {
     if (m_expandedCategory == categoryName) {
         collapseCategory(categoryName);
     } else {
@@ -99,7 +91,7 @@ void MeeShop::MeeShopCategoriesModel::toggleKids(const QString &categoryName) {
     emit dataChanged(index(0, 0), index(rowCount() - 1, 0));
 }
 
-void MeeShop::MeeShopCategoriesModel::collapseCategory(const QString &categoryName) {
+void CategoriesModel::collapseCategory(const QString &categoryName) {
     int row = 0;
     for (const auto &category : m_json) {
         if (QString::fromStdString(category["name"].get<std::string>()) == categoryName) {
@@ -112,7 +104,7 @@ void MeeShop::MeeShopCategoriesModel::collapseCategory(const QString &categoryNa
     }
 }
 
-void MeeShop::MeeShopCategoriesModel::expandCategory(const QString &categoryName) {
+void CategoriesModel::expandCategory(const QString &categoryName) {
     int row = 0;
     for (const auto &category : m_json) {
         if (QString::fromStdString(category["name"].get<std::string>()) == categoryName) {
@@ -125,7 +117,7 @@ void MeeShop::MeeShopCategoriesModel::expandCategory(const QString &categoryName
     }
 }
 
-json MeeShop::MeeShopCategoriesModel::getCategoryByName(const QString &name) const {
+json CategoriesModel::getCategoryByName(const QString &name) const {
     for (const auto &category : m_json) {
         if (QString::fromStdString(category["name"].get<std::string>()) == name) {
             return category;
@@ -134,9 +126,11 @@ json MeeShop::MeeShopCategoriesModel::getCategoryByName(const QString &name) con
     return json();
 }
 
-bool MeeShop::MeeShopCategoriesModel::isChildCategory(const json &category) const {
+bool CategoriesModel::isChildCategory(const json &category) const {
     if (category.contains("parents") && !category["parents"].empty()) {
         return std::stoi(category["parents"][0].get<std::string>()) > 0;
     }
     return false;
+}
+
 }

@@ -8,10 +8,8 @@
 #include <QEventLoop>
 #include <QCoreApplication>
 #include <nlohmann/json.hpp>
-#include "../models/MeeShopApplicationModel.h"
-#include "../models/MeeShopCategoriesModel.h"
-#include "../structs/applicationinfo.h"
-#include "LambdaSlot.h"
+#include "../models/applicationmodel.h"
+#include "../models/categoriesmodel.h"
 #include <QVariantHash>
 
 namespace MeeShop {
@@ -19,13 +17,13 @@ namespace MeeShop {
 class OpenReposApi : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(MeeShop::MeeShopApplicationModel* appModel READ getAppModel NOTIFY appModelChanged)
-    Q_PROPERTY(MeeShop::MeeShopCategoriesModel* categoryModel READ getCategoryModel NOTIFY categoryModelChanged)
+    Q_PROPERTY(MeeShop::ApplicationModel* appModel READ getAppModel NOTIFY appModelChanged)
+    Q_PROPERTY(MeeShop::CategoriesModel* categoryModel READ getCategoryModel NOTIFY categoryModelChanged)
     Q_PROPERTY(QVariantMap appInfo READ getAppInfo NOTIFY appInfoChanged)
 public:
     explicit OpenReposApi(QObject *parent = nullptr) : QObject{parent},
         lastPage(0),
-        appModel(new MeeShop::MeeShopApplicationModel(this)), categoryModel(new MeeShop::MeeShopCategoriesModel),
+        appModel(new MeeShop::ApplicationModel(this)), categoryModel(new MeeShop::CategoriesModel),
         baseUrl("http://openrepos.wunderwungiel.pl/api/v1")
     {
         request.setRawHeader("Accept-Langueage", "en");
@@ -35,8 +33,8 @@ public:
         //request.setSslConfiguration(config);
     }
 
-    MeeShop::MeeShopApplicationModel* getAppModel() {return appModel;}
-    MeeShop::MeeShopCategoriesModel* getCategoryModel() {return categoryModel;}
+    MeeShop::ApplicationModel* getAppModel() {return appModel;}
+    MeeShop::CategoriesModel* getCategoryModel() {return categoryModel;}
     QVariantMap getAppInfo() {return appInfo;}
 
 
@@ -66,8 +64,8 @@ private:
     QNetworkAccessManager manager;
     QNetworkRequest request;
 
-    MeeShop::MeeShopApplicationModel* appModel;
-    MeeShop::MeeShopCategoriesModel* categoryModel;
+    MeeShop::ApplicationModel* appModel;
+    MeeShop::CategoriesModel* categoryModel;
     QVariantMap appInfo;
 };
 

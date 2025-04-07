@@ -8,10 +8,11 @@
 #include <sstream>
 #include <thread>
 #include <mutex>
-#include "pseudoTerminal.h"
+#include "pseudoterminal.h"
 #include <QObject>
-#include <qdebug.h>
+#include <QDebug>
 #include <unistd.h>
+#include <QtConcurrentRun>
 
 enum class AptEventType {
     READING_PACKAGE_LISTS,
@@ -28,11 +29,12 @@ enum class AptEventType {
 };
 
 struct AptEvent {
-    AptEventType type;
+    AptEventType type = AptEventType::UNKNOWN;
     std::string description;
     int progress = -1;
     std::string package_name;
 };
+
 
 struct PackageInfo {
     int upgraded = 0;
@@ -52,9 +54,8 @@ private:
     PseudoTerm pt;
     std::string apt_executable;
     std::string apt_out;
-    std::unordered_map<AptEventType, AptEvent> current_events;
-    AptEventType current_active_event = AptEventType::UNKNOWN;
-    std::mutex pt_mutex; // Mutex to protect access to pt
+    AptEvent current_event;
+
 
     AptEventType identifyEvent(const std::string& line) {
         if (line.find("Reading package lists...") != std::string::npos)
@@ -103,35 +104,33 @@ private:
         std::string package_name = extractPackageName(line);
 
         if (event_type == AptEventType::DONE) {
-            if (current_active_event != AptEventType::UNKNOWN) {
-                auto& event = current_events[current_active_event];
-                event.progress = 100;
-                emit progressChanged(QString::fromStdString(getEventName(event.type)), 100);
-                current_events.erase(current_active_event);
-                current_active_event = AptEventType::UNKNOWN;
+            if (current_event.type != AptEventType::UNKNOWN) {
+                current_event.progress = 100;
+                emit progressChanged(QString::fromStdString(getEventName(current_event.type)), 100);
+                current_event = AptEvent();
             }
             return;
         }
 
-        auto it = current_events.find(event_type);
-        if (it == current_events.end()) {
-            AptEvent event;
-            event.type = event_type;
-            event.description = line;
-            event.progress = progress;
-            event.package_name = package_name;
-            current_events[event_type] = event;
-            current_active_event = event_type;
+        if (current_event.type != event_type) {
+            current_event = AptEvent{
+                .type = event_type,
+                .description = line,
+                .progress = progress,
+                .package_name = package_name
+            };
+
             emit actionChanged(QString::fromStdString(getEventName(event_type) + (package_name.empty() ? "" : " " + package_name)));
         } else {
-            it->second.progress = progress;
-            it->second.package_name = package_name;
+            current_event.progress = progress;
+            current_event.package_name = package_name;
         }
 
         if (progress != -1) {
             emit progressChanged(QString::fromStdString(getEventName(event_type)), progress);
         }
     }
+
 
     std::string getEventName(AptEventType type) {
         switch (type) {
@@ -169,7 +168,7 @@ private:
 
 public:
     explicit AptTools(const std::string& apt_exe, QObject* parent = nullptr)
-        : QObject(parent), pt(OutputMode::Trim), apt_executable(apt_exe) {
+        : QObject(parent), apt_executable(apt_exe) {
         setupPseudoTerminalCallbacks();
     }
 
@@ -179,11 +178,7 @@ public:
             return;
         }
         apt_out = "";
-        std::thread t([this]() {
-            std::lock_guard<std::mutex> lock(pt_mutex);
-            pt.run_command(apt_executable, {"update"});
-        });
-        t.detach();
+        pt.run_command(apt_executable, {"update"});
     }
 
     void installPackage(const std::string& package) {
@@ -193,11 +188,7 @@ public:
             return;
         }
         apt_out = "";
-        std::thread t([this, package]() {
-            std::lock_guard<std::mutex> lock(pt_mutex);
-            pt.run_command(apt_executable, {"install", "-y", "--force-yes", package});
-        });
-        t.detach();
+        pt.run_command(apt_executable, {"install", "-y", "--force-yes", package});
     }
 
     void removePackage(const std::string& package) {
@@ -206,11 +197,7 @@ public:
             return;
         }
         apt_out = "";
-        std::thread t([this, package]() {
-            std::lock_guard<std::mutex> lock(pt_mutex);
-            pt.run_command(apt_executable, {"remove", "-y", "--force-yes",  package});
-        });
-        t.detach();
+        pt.run_command(apt_executable, {"remove", "-y", "--force-yes",  package});
     }
 
     void autoremovePurge() {
@@ -219,81 +206,7 @@ public:
             return;
         }
         apt_out = "";
-        std::thread t([this]() {
-            std::lock_guard<std::mutex> lock(pt_mutex);
-            pt.run_command(apt_executable, {"autoremove", "--purge", "-y", "--force-yes",});
-        });
-        t.detach();
-    }
-
-    PackageInfo simulateInstall(const std::string& package) {
-        if (access(apt_executable.c_str(), X_OK) != 0) {
-            emit errorOrWarning("Error", "APT executable not found or not executable: " + QString::fromStdString(apt_executable));
-            return PackageInfo();
-        }
-        std::lock_guard<std::mutex> lock(pt_mutex);
-        PackageInfo result;
-        apt_out = "";
-
-        auto original_handler = pt.OnOutputReceived;
-        pt.OnOutputReceived = [this](const std::string& out) {
-            apt_out += out + "\n";
-        };
-        pt.run_command(apt_executable, {"install", "--dry-run", package});
-        pt.OnOutputReceived = original_handler;
-
-        std::istringstream iss(apt_out);
-        std::string line;
-        std::vector<std::string>* current_list = nullptr;
-
-        std::regex summary_regex(R"(\s*(\d+)\s+upgraded,\s*(\d+)\s+newly installed,\s*(\d+)\s+to remove and\s*(\d+)\s+not upgraded)");
-
-        while (std::getline(iss, line)) {
-            std::smatch match;
-
-            if (std::regex_search(line, match, summary_regex)) {
-                result.upgraded = std::stoi(match[1]);
-                result.newly_installed = std::stoi(match[2]);
-                result.to_remove = std::stoi(match[3]);
-                result.not_upgraded = std::stoi(match[4]);
-            }
-            else if (line.find("The following additional packages will be installed:") != std::string::npos) {
-                current_list = &result.additional_packages;
-            }
-            else if (line.find("Suggested packages:") != std::string::npos) {
-                current_list = &result.suggested_packages;
-            }
-            else if (line.find("The following NEW packages will be installed:") != std::string::npos) {
-                current_list = &result.new_packages;
-            }
-            else if (current_list && !line.empty() && line[0] == ' ') {
-                std::istringstream package_stream(line);
-                std::string pkg;
-                while (package_stream >> pkg) {
-                    current_list->push_back(pkg);
-                }
-            }
-            else if (current_list && !line.empty() && line[0] != ' ') {
-                current_list = nullptr;
-            }
-        }
-
-        return result;
-    }
-
-    bool isInstalled(const std::string& package) {
-        std::lock_guard<std::mutex> lock(pt_mutex);
-        apt_out = "";
-        auto original_handler = pt.OnOutputReceived;
-
-        pt.OnOutputReceived = [this](const std::string& out) {
-            qDebug() << "recieved line" << out.c_str();
-            apt_out += out + "\n";
-        };
-        pt.run_command("/usr/bin/aegis-dpkg", {"-s", package});
-        pt.OnOutputReceived = original_handler;
-
-        return (apt_out.find("Status: install ok installed") != std::string::npos);
+        pt.run_command(apt_executable, {"autoremove", "--purge", "-y", "--force-yes",});
     }
 
     void processLine(const std::string& line) {

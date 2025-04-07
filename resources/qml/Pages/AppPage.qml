@@ -160,9 +160,9 @@ Page {
                         id: updateButton
                         text: "Update"
                         onClicked: {
-                            enabled = false
+                            enabled = false;
                             installationStatus.visible = true;
-                            actionIndicator.visible = true
+                            actionIndicator.visible = true;
                             packageManager.installPackage(appInfo.packages.harmattan.name ? appInfo.packages.harmattan.name : appInfo.package.name)
                         }
                     }
@@ -170,10 +170,11 @@ Page {
                         id: installButton
                         text: "Install"
                         onClicked: {
-                            enabled = false
-                            appRect.indicatorVisible = true
+                            enabled = false;
+                            installationStatus.visible = true;
+                            appRect.indicatorVisible = true;
                             appRect.appIconSize = 40;
-                            packageManager.installPackage(appInfo.packages.harmattan.name ? appInfo.packages.harmattan.name : appInfo.package.name)
+                            packageManager.installPackage(appInfo.packages.harmattan.name ? appInfo.packages.harmattan.name : appInfo.package.name);
                         }
                     }
                     Connections {

@@ -1,18 +1,10 @@
-#include "MeeShopApplicationModel.h"
+#include "applicationmodel.h"
 
-MeeShop::MeeShopApplicationModel::MeeShopApplicationModel(QObject *parent)
-    : QAbstractListModel(parent)
-{
-    QHash<int, QByteArray> roles;
-    roles[AppNameRole] = "appName";
-    roles[AppVerRole] = "appVer";
-    roles[AppDevRole] = "appDev";
-    roles[AppIdRole] = "appId";
-    roles[AppIconRole] = "appIcon";
-    setRoleNames(roles);
-}
 
-void MeeShop::MeeShopApplicationModel::pushPageBack(const json &page)
+namespace MeeShop {
+
+
+void ApplicationModel::pushPageBack(const json &page)
 {
     int diff = 0;
     beginResetModel();
@@ -26,7 +18,7 @@ void MeeShop::MeeShopApplicationModel::pushPageBack(const json &page)
 
 }
 
-void MeeShop::MeeShopApplicationModel::pushPageFront(const json &page)
+void ApplicationModel::pushPageFront(const json &page)
 {
     beginResetModel();
     m_jsonList.prepend(page);
@@ -37,7 +29,7 @@ void MeeShop::MeeShopApplicationModel::pushPageFront(const json &page)
     emit pageFrontAdded(page.size());
 }
 
-int MeeShop::MeeShopApplicationModel::rowCount(const QModelIndex &parent) const {
+int ApplicationModel::rowCount(const QModelIndex &parent) const {
     Q_UNUSED(parent);
     int count = 0;
     for (const auto &jsonDoc : m_jsonList) {
@@ -46,7 +38,7 @@ int MeeShop::MeeShopApplicationModel::rowCount(const QModelIndex &parent) const 
     return count;
 }
 
-QVariant MeeShop::MeeShopApplicationModel::data(const QModelIndex &index, int role) const {
+QVariant ApplicationModel::data(const QModelIndex &index, int role) const {
     if (index.row() < 0 || index.row() >= rowCount()) {
         return QVariant();
     }
@@ -59,7 +51,7 @@ QVariant MeeShop::MeeShopApplicationModel::data(const QModelIndex &index, int ro
             switch (role) {
             case AppNameRole:
                 if (jsonElem.contains("title"))
-                    return QString::fromStdString(jsonElem["title"].get<std::string>());
+                    return QString::fromStdString(jsonElem["title"].get<std::string>()).simplified();
                 break;
             case AppVerRole:
                 if (jsonElem.contains("version"))
@@ -84,4 +76,5 @@ QVariant MeeShop::MeeShopApplicationModel::data(const QModelIndex &index, int ro
         }
     }
     return QVariant();
+}
 }

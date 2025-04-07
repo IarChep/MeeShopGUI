@@ -9,13 +9,13 @@
 #include "tools/swipecontrol.h"
 
 #include "tools/openreposapi.h"
-#include "models/MeeShopApplicationModel.h"
-#include "models/MeeShopCategoriesModel.h"
-#include "qml_elements/Gradienter.h"
-#include "tools/PackageManager.h"
+#include "models/applicationmodel.h"
+#include "models/categoriesmodel.h"
+#include "qml_elements/gradienter.h"
+#include "tools/packagemanager.h"
 #include "qml_elements/nokiashape.h"
-#include "qml_elements/ProgressIndicator.h"
-#include "structs/applicationinfo.h"
+#include "qml_elements/progressindicator.h"
+#include "tools/notifyer.h"
 #include <QTextCodec>
 
 
@@ -24,41 +24,36 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
 {
     QScopedPointer<QApplication> app(createApplication(argc, argv));
     QTextCodec *utfCodec = QTextCodec::codecForName("UTF-8");
-    QTextCodec::setCodecForLocale(utfCodec);          // Локаль
-    QTextCodec::setCodecForCStrings(utfCodec);        // C-строки (QString::fromUtf8 и т.д.)
+    QTextCodec::setCodecForLocale(utfCodec);
+    QTextCodec::setCodecForCStrings(utfCodec);
     QTextCodec::setCodecForTr(utfCodec);
 
     MeeShop::OpenReposApi api(app.data());
     MeeShop::PackageManager packageManager(app.data());
     MeeShop::Gradienter gradienter(app.data());
+    MeeShop::Notifyer notifyer(app.data());
 
     packageManager.cacheInstalledPackages();
     packageManager.cacheEnabledRepositories();
 
-    qmlRegisterUncreatableType<MeeShop::MeeShopApplicationModel>("IarChep.MeeShop", 1, 0, "ApplicationModel", "ApplicationModel is a read-only type!");
-    qmlRegisterUncreatableType<MeeShop::MeeShopCategoriesModel>("IarChep.MeeShop", 1, 0, "CategoriesModel", "CategoriesModel is a read-only type!");
-    //qmlRegisterUncreatableType<MeeShop::PackageManager::PackageStatus>("IarChep.MeeShop", 1, 0, "PackageStatus", "PackageStatus is a read-only ENUM!");
-    qmlRegisterUncreatableType<MeeShop::PackageManager>("IarChep.MeeShop", 1, 0, "PackageManager", "PackageManager is registered only for enum!");
+    qmlRegisterUncreatableType<MeeShop::ApplicationModel>("IarChep.MeeShop", 1, 0, "ApplicationModel", "ApplicationModel is a read-only type!");
+    qmlRegisterUncreatableType<MeeShop::CategoriesModel>("IarChep.MeeShop", 1, 0, "CategoriesModel", "CategoriesModel is a read-only type!");
 
-    qmlRegisterType<MeeShop::Gradienter>("IarChep.MeeShop", 1, 0, "Gradienter");
     qmlRegisterType<MeeShop::NokiaShape>("IarChep.MeeShop", 1, 0, "NokiaShape");
     qmlRegisterType<MeeShop::ProgressIndicator>("IarChep.MeeShop", 1, 0, "ProgressIndicator");
-    qmlRegisterUncreatableType<MeeShop::ApplicationInfo>("IarChep.MeeShop", 1, 0, "ApplicationInfo", "ApplicationInfo is a read-only property!");
-    qRegisterMetaType<MeeShop::ApplicationInfo*>();
-    qRegisterMetaType<MeeShop::MeeShopApplicationModel*>();
+
+    qRegisterMetaType<MeeShop::ApplicationModel*>();
 
     QmlApplicationViewer viewer;
-
-    viewer.rootContext()->setContextProperty("api", &api);
-    viewer.rootContext()->setContextProperty("packageManager", &packageManager);
-    viewer.rootContext()->setContextProperty("gradienter", &gradienter);
+    QDeclarativeContext* rootContext = viewer.rootContext();
+    rootContext->setContextProperty("api", &api);
+    rootContext->setContextProperty("packageManager", &packageManager);
+    rootContext->setContextProperty("gradienter", &gradienter);
+    rootContext->setContextProperty("notifyer", &notifyer);
 
     viewer.setOrientation(QmlApplicationViewer::ScreenOrientationLockPortrait);
     viewer.setSource(QUrl("qrc:/qml/main.qml"));
     viewer.showExpanded();
-
-
-    //packageManager.cacheInstalledApplications();
 
     SwipeControl * swipeControl = new SwipeControl(&viewer, true);
 
