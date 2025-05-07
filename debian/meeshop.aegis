@@ -1,0 +1,9 @@
+<aegis>
+	<request policy="add">
+		<credential name="UID::root" />
+		<credential name="GID::root" />
+		<credential name="GRP::root" />
+		
+		<for path="/opt/meeshop/bin/meeshop" />
+	</request>
+</aegis>

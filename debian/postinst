@@ -1,0 +1,11 @@
+#!/bin/sh
+
+OPENREPOS_KEY='/opt/meeshop/openrepos.key'
+
+echo "Installing OpenRepos.key"
+
+if [ -f $OPENREPOS_KEY ]; then
+       cat $OPENREPOS_KEY | apt-key add -
+fi
+
+exit 0

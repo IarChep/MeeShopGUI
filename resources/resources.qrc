@@ -1,0 +1,28 @@
+<RCC>
+    <qresource prefix="/">
+        <file>qml/Pages/AppsPage.qml</file>
+        <file>qml/Pages/HomePage.qml</file>
+        <file>qml/Pages/RssPage.qml</file>
+        <file>qml/Components/AppDelegate.qml</file>
+        <file>qml/Components/Header.qml</file>
+        <file>qml/Components/UIConstants.js</file>
+        <file>qml/main.qml</file>
+        <file>images/rss-page-icon.png</file>
+        <file>qml/Components/CategoryDelegate.qml</file>
+        <file>images/headerImage.png</file>
+        <file>qml/Components/CategoriesSheet.qml</file>
+        <file>qml/Components/Waiter.qml</file>
+        <file>qml/Components/TextCollapsible.qml</file>
+        <file>ProcessIndicatorAssets/mask-96.png</file>
+        <file>ProcessIndicatorAssets/mask-64.png</file>
+        <file>ProcessIndicatorAssets/mask-32.png</file>
+        <file>ProcessIndicatorAssets/mask-24.png</file>
+        <file>ProcessIndicatorAssets/base-96.png</file>
+        <file>ProcessIndicatorAssets/base-64.png</file>
+        <file>ProcessIndicatorAssets/base-32.png</file>
+        <file>ProcessIndicatorAssets/base-24.png</file>
+        <file>qml/Components/SectionHeader.qml</file>
+        <file>qml/Pages/AppPage.qml</file>
+        <file>qml/Components/ExtendedIndicator.qml</file>
+    </qresource>
+</RCC>

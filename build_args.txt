@@ -1,0 +1,1 @@
+-DBUILD_N9=ON -DCONAN_HOST_PROFILE=auto-cmake -DQT_CREATOR_SKIP_CONAN_SETUP=ON -DCMAKE_PROJECT_TOP_LEVEL_INCLUDES=/home/iarchep/Documents/MeeShopGUI/tools/conan_provider.cmake -DCONAN_BUILD_PROFILE="default"
