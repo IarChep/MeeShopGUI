@@ -13,7 +13,7 @@ Notifyer::Notifyer(QObject *parent)
     }
 
     if (!notificationManager.isValid()) {
-        qDebug() << "Failed to connect to notification managerй";
+        qDebug() << "Failed to connect to notification manager";
     }
 }
 void Notifyer::sendPopup(QString body) {

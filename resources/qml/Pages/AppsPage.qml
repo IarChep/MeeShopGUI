@@ -63,6 +63,20 @@ Page {
     }
 
 
+    Component {
+        id: headerItem
+        LoadMoreRectangle {
+            SectionHeader {
+                anchors.bottom: parent.bottom
+            }
+        }
+    }
+    Component {
+        id: footerItem
+        LoadMoreRectangle {
+            SectionHeader {}
+        }
+    }
 
     ListView {
         id: mainList
@@ -76,9 +90,30 @@ Page {
         property bool startReached: true
         property int oldContentY;
 
+        property bool showHeader: false
+        property bool showFooter: true
+
         delegate: AppDelegate {
             onClicked: {
                 appWindow.pageStack.replace(appPage, {appId: appId})
+            }
+        }
+
+        header: mainList.showHeader ? headerItem : null
+        footer: mainList.showFooter ? footerItem : null
+
+        Connections {
+            target: page
+            onPageChanged: {
+                console.log("Page: ", page.page)
+                if (page.page > 2 && !mainList.showHeader) {
+                    mainList.showHeader = true
+                    mainList.oldContentY += 90
+                }
+                else if (page.page - 2 <= 0 && mainList.showHeader) {
+                    mainList.showHeader = false
+                    mainList.oldContentY -= 90
+                }
             }
         }
 

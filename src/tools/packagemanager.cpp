@@ -1,27 +1,22 @@
 #include "packagemanager.h"
 
 
-QString MeeShop::PackageManager::isInstalled(QString package, QString name) {
-    qDebug() << "Checking package" << package;
+int MeeShop::PackageManager::isInstalled(QString package, QString name) {
     if (installedPackages.contains(package)) {
         QVariantMap pkg = installedPackages.values(package).at(0);
         if (pkg["Status"] == "install ok installed") {
-            qDebug() << "Package" << package << "is installed";
             QString maxRepoVersion = PackageUtils::findMaxVersion(package, PackageUtils::getRepoPackagesPath(name));
-            qDebug() << "Max version in the repo" << maxRepoVersion << ", current installde vesrion" << pkg["Version"].toString();
-            if (PackageUtils::compareVersions(pkg["Version"].toString().toStdString(), maxRepoVersion.toStdString()) < 0) {
-                qDebug() << "updateable";
-                return "Updatable";
+            QString installedVersion = pkg["Version"].toString();
+            if ( (installedVersion != maxRepoVersion) && PackageUtils::compareVersions(pkg["Version"].toString().toStdString(), maxRepoVersion.toStdString()) < 0) {
+                return 2;
             } else {
-                qDebug() << "final version";
-                return "Installed";
+                return 1;
             }
         } else {
-            return "NotInstalled";
+            return 0;
         }
     }
-    qDebug() << "Package" << package << "is not installed";
-    return "NotInstalled";
+    return 0;
 }
 
 void MeeShop::PackageManager::updateRepositories() {
@@ -38,17 +33,6 @@ void MeeShop::PackageManager::installPackage(QString package) {
 
 void MeeShop::PackageManager::cacheInstalledPackages() {
     installedPackages = PackageUtils::parsePkgDatabase("/var/lib/dpkg/status");
-    for (QMultiHash<QString, QVariantMap>::const_iterator it = installedPackages.constBegin(); it != installedPackages.constEnd(); ++it) {
-        QVariantMap data = it.value();
-        if (data["Status"].toString().contains("installed")) {
-            qDebug().nospace()
-                    << "Пакет: " << it.key() << "\n"
-                    << "  Версия: " << data["Version"].toString() << "\n"
-                    << "  Статус: " << data["Status"].toString() << "\n"
-                    << "  Архитектура: " << data["Architecture"].toString() << "\n"
-                    << "  Описание: " << data["Description"].toString();
-        }
-    }
 }
 bool MeeShop::PackageManager::isRepositoryEnabled(QString name) {
     return (enabledRepositories.contains(name) && enabledRepositories[name].toBool());

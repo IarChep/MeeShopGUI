@@ -24,5 +24,6 @@
         <file>qml/Components/SectionHeader.qml</file>
         <file>qml/Pages/AppPage.qml</file>
         <file>qml/Components/ExtendedIndicator.qml</file>
+        <file>qml/Components/LoadMoreRectangle.qml</file>
     </qresource>
 </RCC>

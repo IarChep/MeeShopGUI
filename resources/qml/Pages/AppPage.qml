@@ -360,15 +360,14 @@ Page {
         onGradientChanged: {
             if(packageManager.isRepositoryEnabled(appInfo.user.name)) {
                 var stat = packageManager.isInstalled(appInfo.packages.harmattan.name, appInfo.user.name)
-                console.log(stat)
                 repositoryButton.visible = false
-                if (stat === "Installed") {
+                if (stat == PackageManager.Installed) {
                     installButton.visible = false
                     updateButton.visible = false
-                } else if (stat === "Updatable") {
+                } else if (stat == PackageManager.Updatable) {
                     installButton.visible = false
                     updateButton.visible = true
-                } else if (stat === "NotInstalled") {
+                } else if (stat == PackageManager.NotInstalled) {
                     deleteButton.visible = false
                     updateButton.visible = false
                 }

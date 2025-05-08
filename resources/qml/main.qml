@@ -67,9 +67,8 @@ PageStackWindow {
         }
         ToolIcon {
             platformIconId: "toolbar-view-menu"
-            anchors.right: (parent === undefined) ? undefined : parent.right
         }
-        }
+    }
 
     Component {
         id: homePage

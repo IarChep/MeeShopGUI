@@ -37,11 +37,13 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
 
     qmlRegisterUncreatableType<MeeShop::ApplicationModel>("IarChep.MeeShop", 1, 0, "ApplicationModel", "ApplicationModel is a read-only type!");
     qmlRegisterUncreatableType<MeeShop::CategoriesModel>("IarChep.MeeShop", 1, 0, "CategoriesModel", "CategoriesModel is a read-only type!");
+    qmlRegisterUncreatableType<MeeShop::PackageManager>("IarChep.MeeShop", 1, 0, "PackageManager", "Only for ENUM!");
 
     qmlRegisterType<MeeShop::NokiaShape>("IarChep.MeeShop", 1, 0, "NokiaShape");
     qmlRegisterType<MeeShop::ProgressIndicator>("IarChep.MeeShop", 1, 0, "ProgressIndicator");
 
     qRegisterMetaType<MeeShop::ApplicationModel*>();
+    //qRegisterMetaType<MeeShop::PackageManager::InstallationStatus>();
 
     QmlApplicationViewer viewer;
     QDeclarativeContext* rootContext = viewer.rootContext();

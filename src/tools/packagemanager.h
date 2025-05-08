@@ -2,6 +2,8 @@
 #define PROCESSMANAGER_H
 
 #include <QObject>
+#include <QMetaEnum>
+#include <QMetaObject>
 #include <QString>
 #include <QFile>
 #include <QDir>
@@ -18,12 +20,18 @@ namespace MeeShop {
 class PackageManager : public QObject
 {
     Q_OBJECT
+    Q_ENUMS(InstallationStatus)
 public:
     explicit PackageManager(QObject *parent = 0): QObject(parent), apt("/usr/bin/aegis-apt-get") {
         connect(&apt, SIGNAL(actionChanged(const QString&)), this, SLOT(handleActionChanged(const QString&)));
         connect(&apt, SIGNAL(progressChanged(const QString&, int)), this, SLOT(handleProgressChanged(const QString&, int)));
         connect(&apt, SIGNAL(errorOrWarning(const QString, const QString&)), this, SLOT(handleErrorOrWarning(const QString&, const QString&)));
     }
+    enum InstallationStatus {
+        NotInstalled = 0,
+        Installed,
+        Updatable
+    };
 
 signals:
     void actionChanged(QString action);
@@ -42,7 +50,7 @@ public slots:
     void disableRepository(QString name);
     void updateRepositories();
 
-    QString isInstalled(QString package, QString name);
+    int isInstalled(QString package, QString name);
     void cacheInstalledPackages();
 
 private slots:
