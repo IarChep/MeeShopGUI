@@ -11,7 +11,7 @@ Page {
     property int page: 0
     property string categoryName: "Apps"
     property string title : "<b>MeeShop</b>: " + categoryName
-    property int category: 1
+    property int category: -1
     property bool isSearch: false
     property string query: ""
 
@@ -20,11 +20,16 @@ Page {
 
     tools: toolBar
 
+    CategoriesSheet {
+        id: catSheet
+    }
+
     Header {
         id: header
         clickable: true
         onClicked: {
-            api.getCategories()
+            catSheet.selectedIndex = page.category
+            catSheet.cancellable = true
             catSheet.open()
         }
     }
@@ -119,13 +124,12 @@ Page {
             }
         }
     }
-
     ListView {
         id: mainList
         width: parent.width
         anchors.top: searchRect.bottom
         anchors.topMargin: 5
-        height:  parent.height - header.height - searchRect.height - anchors.topMargin
+        height: parent.height - header.height - searchRect.height - anchors.topMargin
         model: api.appModel
 
         property bool endReached: true
@@ -133,6 +137,22 @@ Page {
 
         property bool showHeader: false
         property bool showFooter: true
+
+        function resetVars() {
+            showHeader = false;
+            showFooter = true;
+            endReached = true;
+            startReached = true
+        }
+
+        function checkHeaders() {
+            if (page.page > 2 && !mainList.showHeader) {
+                mainList.showHeader = true
+            }
+            else if (page.page - 2 <= 0 && mainList.showHeader) {
+                mainList.showHeader = false
+            }
+        }
 
         delegate: AppDelegate {
             onClicked: {
@@ -144,31 +164,19 @@ Page {
         footer: listFooter
 
         Connections {
-            target: page
-            onPageChanged: {
-
-                console.log("Page: ", page.page)
-                if (page.page > 2 && !mainList.showHeader) {
-                    mainList.showHeader = true
-                }
-                else if (page.page - 2 <= 0 && mainList.showHeader) {
-                    mainList.showHeader = false
-                }
-            }
-        }
-
-        Connections {
             target: api.appModel
             onPageBackAdded: {
                 mainList.endReached = false;
                 mainList.startReached = false;
                 page.footerRotating = false;
+                mainList.checkHeaders();
             }
             onPageFrontAdded: {
                 mainList.endReached = false;
                 mainList.startReached = false;
                 mainList.contentY += frontAddedSize * 90;
                 page.headerRotating = false;
+                mainList.checkHeaders();
             }
         }
 
@@ -178,8 +186,7 @@ Page {
                 page.footerRotating = true;
                 console.log("end");
                 page.page += 1;
-                api.getCategoryApps(page.category, page.page);
-
+                api.getCategoryAppsPage(page.category, page.page);
             }
         }
         onAtYBeginningChanged: {
@@ -188,17 +195,36 @@ Page {
                 page.headerRotating = true;
                 console.log("start");
                 page.page -= 1;
-                api.getCategoryApps(page.category, page.page-2);
-
+                api.getCategoryAppsPage(page.category, page.page-2);
             }
         }
     }
 
-
+    Waiter {
+        id: waiter
+        Connections {
+            target: api
+            onAppModelChanged: {
+                waiter.hide()
+            }
+        }
+    }
     onStatusChanged: {
         if(status === PageStatus.Activating)
         {
-            api.getCategoryApps(page.category, page.page);
+            if (page.category === -1) {
+                catSheet.cancellable = false
+                api.getCategories()
+                catSheet.open()
+            }
+        }
+    }
+    Connections {
+        target: catSheet
+        onAccepted: {
+            page.page = 0;
+            mainList.resetVars();
+            api.getCategoryApps(page.category);
         }
     }
 }

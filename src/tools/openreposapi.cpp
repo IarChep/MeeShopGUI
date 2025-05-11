@@ -10,16 +10,22 @@ void OpenReposApi::getCategories() {
     QObject::connect(reply, SIGNAL(finished()), this, SLOT(process_categories()));
 }
 
-void OpenReposApi::getCategoryApps(int cat_id, int page) {
-    currentPage = page;
-    QString currentRoute = "/categories/" + QString::number(cat_id) + "/apps?page=" + QString::number(page); // Set route for category apps
+void OpenReposApi::getCategoryApps(int cat_id) {
+    currentPage = 0;
+    QString currentRoute = "/categories/" + QString::number(cat_id) + "/apps?page=0";
     request.setUrl(QUrl(baseUrl + currentRoute));
     QNetworkReply *reply = manager.get(request);
 
-
     connect(reply, SIGNAL(finished()), this, SLOT(process_apps()));
 }
+void OpenReposApi::getCategoryAppsPage(int cat_id, int page) {
+    currentPage = page;
+    QString currentRoute = "/categories/" + QString::number(cat_id) + "/apps?page=" + QString::number(page);
+    request.setUrl(QUrl(baseUrl + currentRoute));
+    QNetworkReply *reply = manager.get(request);
 
+    connect(reply, SIGNAL(finished()), this, SLOT(process_apps_page()));
+}
 void OpenReposApi::search(QString query) {
     QString currentRoute = "/search/apps?keys=" + query; // Set route for search
     request.setUrl(QUrl(baseUrl + currentRoute));
@@ -44,6 +50,21 @@ void OpenReposApi::getAppComments(int app_id) {
 }
 
 void OpenReposApi::process_apps() {
+    QNetworkReply* reply = qobject_cast<QNetworkReply*>(sender());
+    if (reply->error() == QNetworkReply::NoError) {
+        nlohmann::json jsonObj = parseJson(reply->readAll());
+        appModel = new MeeShop::ApplicationModel(this);
+        emit appModelChanged();
+        appModel->pushPageBack(jsonObj);
+        emit appModelChanged();
+        lastPage = 0;
+        emit finished(true);
+    } else {
+        emit finished(false);
+    }
+    reply->deleteLater();
+}
+void OpenReposApi::process_apps_page() {
     QNetworkReply* reply = qobject_cast<QNetworkReply*>(sender());
     if (reply->error() == QNetworkReply::NoError) {
         nlohmann::json jsonObj = parseJson(reply->readAll());

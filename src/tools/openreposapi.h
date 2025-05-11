@@ -39,13 +39,15 @@ public:
 
 
     Q_INVOKABLE void getCategories();
-    Q_INVOKABLE void getCategoryApps(int cat_id, int page);
+    Q_INVOKABLE void getCategoryApps(int cat_id);
+    Q_INVOKABLE void getCategoryAppsPage(int cat_id, int page);
     Q_INVOKABLE void search(QString query);
     Q_INVOKABLE void getApplication(int app_id);
     Q_INVOKABLE void getAppComments(int app_id);
 
 public slots:
     void process_apps();
+    void process_apps_page();
     void process_categories();
     void process_app();
 signals:

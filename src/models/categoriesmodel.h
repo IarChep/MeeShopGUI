@@ -20,7 +20,8 @@ public:
         CategoryAmountRole,
         CategoryKidsRole,
         CategoryIdRole,
-        CategoryNameRole
+        CategoryNameRole,
+        CategoryUnformattedNameRole
     };
 
     explicit CategoriesModel(QObject *parent = 0) : QAbstractListModel(parent), m_expandedCategory("")
@@ -30,6 +31,7 @@ public:
         roles[CategoryKidsRole] = "categoryKids";
         roles[CategoryIdRole] = "categoryId";
         roles[CategoryNameRole] = "categoryName";
+        roles[CategoryUnformattedNameRole] = "unformattedName";
         setRoleNames(roles);
     }
 

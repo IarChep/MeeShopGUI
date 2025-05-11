@@ -4,7 +4,9 @@ import IarChep.MeeShop 1.0
 
 Sheet {
     id: catSheet
-    property int selectedIndex: 1
+    property int selectedIndex: -1
+    property bool cancellable: true
+
     title: Text {
         text: "Choose a category"
         font.pixelSize: 26
@@ -19,6 +21,7 @@ Sheet {
         anchors.fill: parent
         SheetButton {
             id: rejectButton
+            enabled: catSheet.cancellable
             objectName: "rejectButton"
             anchors.right: parent.right
             anchors.rightMargin: 15
@@ -32,18 +35,35 @@ Sheet {
         }
     }
 
-    content: ListView {
-        model: api.categoryModel
-        anchors.fill:  parent
-        delegate: CategoryDelegate{
-            onClicked: {
-                if (hasKids) {
-                    api.categoryModel.toggleKids(categoryName)
-                } else {
-                    console.log("Selected category with no kids: " + categoryName)
+    content: Item {
+        anchors.fill: parent
+        ListView {
+            model: api.categoryModel
+            anchors.fill:  parent
+            delegate: CategoryDelegate{
+                onClicked: {
+                    if (hasKids) {
+                        api.categoryModel.toggleKids(categoryName)
+                    } else {
+                        page.categoryName = unformattedName
+                        page.category = categoryId
+                        accept()
+                    }
+                }
+                onSelectButtonClicked: {
+                    page.categoryName = unformattedName
+                    page.category = categoryId
+                    accept()
                 }
             }
-            onSelectButtonClicked: console.log("Selected category with kids: " + categoryName)
+        }
+        Waiter {
+            id: waiter
+            Connections {
+                target: api
+                onCategoryModelChanged: waiter.hide()
+            }
         }
     }
+
 }

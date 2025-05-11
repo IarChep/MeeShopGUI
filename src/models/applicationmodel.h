@@ -40,6 +40,12 @@ public:
 
     QVariant data(const QModelIndex & index, int role = Qt::DisplayRole) const;
 
+    Q_INVOKABLE void reset() {
+        beginResetModel();
+        m_jsonList.clear();
+        endResetModel();
+    }
+
 signals:
     void pageBackAdded();
     void pageFrontAdded(int frontAddedSize);

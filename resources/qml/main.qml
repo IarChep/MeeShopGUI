@@ -74,10 +74,8 @@ PageStackWindow {
         id: homePage
         HomePage {}
     }
-
-    Component {
+    AppsPage {
         id: appsPage
-        AppsPage {}
     }
     Component {
         id: rssPage
@@ -86,9 +84,5 @@ PageStackWindow {
     Component {
         id: appPage
         AppPage {}
-    }
-
-    CategoriesSheet {
-        id: catSheet
     }
 }

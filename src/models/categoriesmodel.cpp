@@ -52,7 +52,7 @@ QVariant CategoriesModel::getCategoryData(const json &category, int role) const 
     switch (role) {
     case CategoryAmountRole:
         if (category.contains("apps_count")) {
-                return std::stoi(category["apps_count"].get<std::string>());
+            return std::stoi(category["apps_count"].get<std::string>());
         }
         break;
     case CategoryKidsRole:
@@ -62,7 +62,7 @@ QVariant CategoriesModel::getCategoryData(const json &category, int role) const 
         break;
     case CategoryIdRole:
         if (category.contains("tid")) {
-                return std::stoi(category["tid"].get<std::string>());
+            return std::stoi(category["tid"].get<std::string>());
         }
         break;
     case CategoryNameRole:
@@ -72,6 +72,11 @@ QVariant CategoriesModel::getCategoryData(const json &category, int role) const 
             } else {
                 return QString::fromStdString(category["name"].get<std::string>());
             }
+        }
+        break;
+    case CategoryUnformattedNameRole:
+        if (category.contains("name")) {
+            return QString::fromStdString(category["name"].get<std::string>());
         }
         break;
     }
