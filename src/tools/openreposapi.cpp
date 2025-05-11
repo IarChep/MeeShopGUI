@@ -56,7 +56,6 @@ void OpenReposApi::process_apps() {
         appModel = new MeeShop::ApplicationModel(this);
         emit appModelChanged();
         appModel->pushPageBack(jsonObj);
-        emit appModelChanged();
         lastPage = 0;
         emit finished(true);
     } else {
@@ -73,7 +72,6 @@ void OpenReposApi::process_apps_page() {
         else
             appModel->pushPageFront(jsonObj);
         lastPage = currentPage;
-        emit appModelChanged();
         emit finished(true);
     } else {
         emit finished(false);
