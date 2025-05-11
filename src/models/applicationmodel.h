@@ -41,7 +41,7 @@ public:
     QVariant data(const QModelIndex & index, int role = Qt::DisplayRole) const;
 
 signals:
-    void pageBackAdded(int frontDeletedSize);
+    void pageBackAdded();
     void pageFrontAdded(int frontAddedSize);
 private:
     QList<json> m_jsonList;

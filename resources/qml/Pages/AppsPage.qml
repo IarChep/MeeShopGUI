@@ -15,7 +15,10 @@ Page {
     property bool isSearch: false
     property string query: ""
 
-       tools: toolBar
+    property bool footerRotating: false;
+    property bool headerRotating: false;
+
+    tools: toolBar
 
     Header {
         id: header
@@ -64,17 +67,56 @@ Page {
 
 
     Component {
-        id: headerItem
+        id: listHeader
         LoadMoreRectangle {
+            id: headerItem
+            height: mainList.showHeader ? 90 : 0
+            opacity: mainList.showHeader ? 1 : 0
+            Behavior on height {
+                NumberAnimation { duration: 300; easing.type: Easing.InOutQuad }
+            }
+            Behavior on opacity {
+                NumberAnimation { duration: 300; easing.type: Easing.InOutQuad }
+            }
             SectionHeader {
                 anchors.bottom: parent.bottom
+            }
+            Connections {
+                target: page
+                onHeaderRotatingChanged: {
+                    if (page.headerRotating) {
+                        headerItem.startRotation()
+                    } else {
+                        headerItem.stopRotation()
+                    }
+                }
             }
         }
     }
     Component {
-        id: footerItem
+        id: listFooter
         LoadMoreRectangle {
+            id: footerItem
+            height: mainList.showFooter ? 90 : 0
+            opacity: mainList.showFooter ? 1 : 0
+            Behavior on height {
+                NumberAnimation { duration: 300; easing.type: Easing.InOutQuad }
+            }
+            Behavior on opacity {
+                NumberAnimation { duration: 300; easing.type: Easing.InOutQuad }
+            }
+
             SectionHeader {}
+            Connections {
+                target: page
+                onFooterRotatingChanged: {
+                    if (page.footerRotating) {
+                        footerItem.startRotation()
+                    } else {
+                        footerItem.stopRotation()
+                    }
+                }
+            }
         }
     }
 
@@ -86,9 +128,8 @@ Page {
         height:  parent.height - header.height - searchRect.height - anchors.topMargin
         model: api.appModel
 
-        property bool endReached: false
+        property bool endReached: true
         property bool startReached: true
-        property int oldContentY;
 
         property bool showHeader: false
         property bool showFooter: true
@@ -99,20 +140,19 @@ Page {
             }
         }
 
-        header: mainList.showHeader ? headerItem : null
-        footer: mainList.showFooter ? footerItem : null
+        header: listHeader
+        footer: listFooter
 
         Connections {
             target: page
             onPageChanged: {
+
                 console.log("Page: ", page.page)
                 if (page.page > 2 && !mainList.showHeader) {
                     mainList.showHeader = true
-                    mainList.oldContentY += 90
                 }
                 else if (page.page - 2 <= 0 && mainList.showHeader) {
                     mainList.showHeader = false
-                    mainList.oldContentY -= 90
                 }
             }
         }
@@ -122,34 +162,35 @@ Page {
             onPageBackAdded: {
                 mainList.endReached = false;
                 mainList.startReached = false;
-                mainList.contentY = mainList.oldContentY - (frontDeletedSize * 90)
+                page.footerRotating = false;
             }
             onPageFrontAdded: {
                 mainList.endReached = false;
                 mainList.startReached = false;
-                mainList.contentY = frontAddedSize * 90;
+                mainList.contentY += frontAddedSize * 90;
+                page.headerRotating = false;
             }
         }
 
+        onAtYEndChanged: {
+            if (atYEnd && !endReached) {
+                endReached = true;
+                page.footerRotating = true;
+                console.log("end");
+                page.page += 1;
+                api.getCategoryApps(page.category, page.page);
 
-        onFlickEnded: {
-            if (!endReached && mainList.contentY >= mainList.contentHeight - mainList.height) {
-                endReached = true
-                mainList.oldContentY = mainList.contentY
-                console.log("end")
-                page.page += 1
-                api.getCategoryApps(page.category, page.page)
-            } if (!startReached && mainList.contentY - 210<= 0 && page.page - 3 >= 0) {
-                startReached = true
-                mainList.oldContentY = mainList.contentY
-                console.log("start")
-                page.page -= 1
-                api.getCategoryApps(page.category, page.page-2)
             }
         }
-        Component.onCompleted: {
-            endReached = false
-            startReached = true
+        onAtYBeginningChanged: {
+            if (atYBeginning && !startReached && page.page - 3 >= 0) {
+                startReached = true;
+                page.headerRotating = true;
+                console.log("start");
+                page.page -= 1;
+                api.getCategoryApps(page.category, page.page-2);
+
+            }
         }
     }
 

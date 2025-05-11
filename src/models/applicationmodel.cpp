@@ -6,26 +6,31 @@ namespace MeeShop {
 
 void ApplicationModel::pushPageBack(const json &page)
 {
-    int diff = 0;
-    beginResetModel();
+    int lastRow = rowCount();
+    beginInsertRows(QModelIndex(), lastRow, lastRow + page.size() - 1);
     m_jsonList.append(page);
-    if (m_jsonList.size() > 3) {
-        diff = m_jsonList.first().size();
-        m_jsonList.removeFirst();
-    }
-    endResetModel();
-    emit pageBackAdded(diff);
+    endInsertRows();
 
+    if (m_jsonList.size() > 3) {
+        beginRemoveRows(QModelIndex(), 0, m_jsonList.first().size() - 1);
+        m_jsonList.removeFirst();
+        endRemoveRows();
+    }
+    emit pageBackAdded();
 }
 
 void ApplicationModel::pushPageFront(const json &page)
 {
-    beginResetModel();
+    beginInsertRows(QModelIndex(), 0, page.size() - 1);
     m_jsonList.prepend(page);
+    endInsertRows();
+
     if (m_jsonList.size() > 3) {
+        int lastRow = rowCount();
+        beginRemoveRows(QModelIndex(), lastRow - m_jsonList.last().size(), lastRow - 1);
         m_jsonList.removeLast();
+        endRemoveRows();
     }
-    endResetModel();
     emit pageFrontAdded(page.size());
 }
 
