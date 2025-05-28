@@ -20,14 +20,13 @@ class OpenReposApi : public QObject
     Q_PROPERTY(MeeShop::ApplicationModel* appModel READ getAppModel NOTIFY appModelChanged)
     Q_PROPERTY(MeeShop::CategoriesModel* categoryModel READ getCategoryModel NOTIFY categoryModelChanged)
     Q_PROPERTY(QVariantMap appInfo READ getAppInfo NOTIFY appInfoChanged)
+    Q_PROPERTY(bool isNextPageAvailible READ nextPageAvailible NOTIFY nextPageAvailibleChanged)
 public:
     explicit OpenReposApi(QObject *parent = nullptr) : QObject{parent},
         lastPage(0),
-        appModel(new MeeShop::ApplicationModel(this)), categoryModel(new MeeShop::CategoriesModel),
+        appModel(new MeeShop::ApplicationModel(this)), categoryModel(new MeeShop::CategoriesModel(this)),
         baseUrl("http://openrepos.wunderwungiel.pl/api/v1")
     {
-        request.setRawHeader("Accept-Langueage", "en");
-        request.setRawHeader("Warehouse-Platform", "Harmattan");
         //QSslConfiguration config = request.sslConfiguration();
         //config.setPeerVerifyMode(QSslSocket::VerifyNone);
         //request.setSslConfiguration(config);
@@ -36,6 +35,7 @@ public:
     MeeShop::ApplicationModel* getAppModel() {return appModel;}
     MeeShop::CategoriesModel* getCategoryModel() {return categoryModel;}
     QVariantMap getAppInfo() {return appInfo;}
+    bool nextPageAvailible() {return m_nextPageAvailible;}
 
 
     Q_INVOKABLE void getCategories();
@@ -45,6 +45,7 @@ public:
     Q_INVOKABLE void getAppComments(int app_id);
 
 public slots:
+    void process_apps_first();
     void process_apps();
     void process_categories();
     void process_app();
@@ -53,20 +54,25 @@ signals:
     void appModelChanged();
     void categoryModelChanged();
     void appInfoChanged();
+    void nextPageAvailibleChanged();
+
 private:
     nlohmann::json parseJson(const QByteArray& data);
     QVariant jsonToVariant(const nlohmann::json& json);
 
+    int currentCategory;
     int lastPage;
     int currentPage;
+    bool m_nextPageAvailible;
 
     QString baseUrl;
     QNetworkAccessManager manager;
-    QNetworkRequest request;
 
     MeeShop::ApplicationModel* appModel;
     MeeShop::CategoriesModel* categoryModel;
     QVariantMap appInfo;
+
+    QNetworkRequest createRequest(QUrl url);
 };
 
 } // namespace MeeShop

@@ -62,7 +62,82 @@ Page {
     }
 
 
+<<<<<<< HEAD
 
+=======
+    Component {
+        id: listHeader
+        LoadMoreRectangle {
+            id: headerItem
+            height: mainList.showHeader ? 90 : 0
+            opacity: mainList.showHeader ? 1 : 0
+            Behavior on height {
+                NumberAnimation { duration: 300; easing.type: Easing.InOutQuad }
+            }
+            Behavior on opacity {
+                NumberAnimation { duration: 300; easing.type: Easing.InOutQuad }
+            }
+            SectionHeader {
+                anchors.bottom: parent.bottom
+            }
+            Connections {
+                target: page
+                onHeaderRotatingChanged: {
+                    if (page.headerRotating) {
+                        headerItem.startRotation()
+                    } else {
+                        headerItem.stopRotation()
+                    }
+                }
+            }
+        }
+    }
+    Component {
+        id: listFooter
+        LoadMoreRectangle {
+            id: footerItem
+            height: (mainList.showFooter && api.isNextPageAvailible) ? 90 : 0
+            opacity: (mainList.showFooter && api.isNextPageAvailible) ? 1 : 0
+            Behavior on height {
+                NumberAnimation { duration: 300; easing.type: Easing.InOutQuad }
+            }
+            Behavior on opacity {
+                NumberAnimation { duration: 300; easing.type: Easing.InOutQuad }
+            }
+
+            SectionHeader {}
+            Connections {
+                target: page
+                onFooterRotatingChanged: {
+                    if (page.footerRotating) {
+                        footerItem.startRotation()
+                    } else {
+                        footerItem.stopRotation()
+                    }
+                }
+            }
+        }
+    }
+    Rectangle {
+        color: "transparent"
+        anchors {
+            top: header.bottom
+            left: parent.left
+            right: parent.right
+            bottom: parent.bottom
+        }
+        Text {
+            anchors.centerIn: parent
+            id: emptyCatText
+            text: "This category is empty :("
+            font.pixelSize: 20
+            visible: api.appModel.isEmpty()
+        }
+    }
+
+
+
+>>>>>>> 982f1f7 (Almost finished app list functionality. Categories now fully work)
     ListView {
         id: mainList
         width: parent.width
@@ -83,6 +158,7 @@ Page {
 
         Connections {
             target: api.appModel
+
             onPageBackAdded: {
                 mainList.endReached = false;
                 mainList.startReached = false;
@@ -95,6 +171,7 @@ Page {
             }
         }
 
+<<<<<<< HEAD
 
         onFlickEnded: {
             if (!endReached && mainList.contentY >= mainList.contentHeight - mainList.height) {
@@ -109,6 +186,15 @@ Page {
                 console.log("start")
                 page.page -= 1
                 api.getCategoryApps(page.category, page.page-2)
+=======
+        onAtYEndChanged: {
+            if (atYEnd && !endReached && api.isNextPageAvailible) {
+                endReached = true;
+                page.footerRotating = true;
+                console.log("end");
+                page.page += 1;
+                api.getCategoryAppsPage(page.category, page.page + 1);
+>>>>>>> 982f1f7 (Almost finished app list functionality. Categories now fully work)
             }
         }
         Component.onCompleted: {
@@ -117,6 +203,7 @@ Page {
         }
     }
 
+<<<<<<< HEAD
     Connections{
         target: page.status === PageStatus.Active ? appWindow : null
         ignoreUnknownSignals: true
@@ -130,6 +217,16 @@ Page {
             if (count === 0) {
                 appWindow.pageStack.push(rssPage);
                 count = 1
+=======
+    Waiter {
+        id: waiter
+        Connections {
+            target: api
+            onFinished: {
+                if (waiter.opacity == 1.0) {
+                    waiter.hide()
+                }
+>>>>>>> 982f1f7 (Almost finished app list functionality. Categories now fully work)
             }
         }
         onRightSwipe: {
@@ -140,12 +237,29 @@ Page {
     onStatusChanged: {
         if(status === PageStatus.Activating)
         {
+<<<<<<< HEAD
             count = 0;
             api.getCategoryApps(page.category, page.page);
             appWindow.menuModel.clear();
             appWindow.menuModel.append({title: "Home", type:"home", iconSource: "image://theme/icon-m-toolbar-home-white"});
             appWindow.menuModel.append({title: "Apps", type:"apps", iconSource: "image://theme/icon-m-toolbar-application-white", highlited: true});
             appWindow.menuModel.append({title: "RSS Feeds", type:"rss", iconSource: "../../images/rss-page-icon.png"});
+=======
+            if (page.category === -1) {
+                catSheet.cancellable = false
+                api.getCategories()
+                catSheet.open()
+            }
+        }
+    }
+    Connections {
+        target: catSheet
+        onAccepted: {
+            page.page = 0;
+            waiter.show();
+            mainList.resetVars();
+            api.getCategoryApps(page.category);
+>>>>>>> 982f1f7 (Almost finished app list functionality. Categories now fully work)
         }
     }
 }

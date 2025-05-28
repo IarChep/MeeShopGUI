@@ -18,13 +18,9 @@
 
 namespace MeeShop {
 
-class PackageUtils : public QObject
+class PackageUtils
 {
-    Q_OBJECT
 public:
-    explicit PackageUtils(QObject *parent = nullptr) : QObject{parent}
-    {}
-
     static QMultiHash<QString, QVariantMap> parsePkgDatabase(const  QString filePath);
     static QString findMaxVersion(const QString packageName, const QString filePath);
 

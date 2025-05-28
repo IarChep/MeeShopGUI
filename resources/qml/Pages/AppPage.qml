@@ -183,18 +183,21 @@ Page {
                             if (code === 0) {
                                 if(packageManager.isRepositoryEnabled(appInfo.user.name)) {
                                     var stat = packageManager.isInstalled(appInfo.packages.harmattan.name, appInfo.user.name)
-                                    console.log(stat)
                                     repositoryButton.visible = false
-                                    if (stat === "Installed") {
-                                        deleteButton.visible = true
-                                    } else if (stat === "Updatable") {
-                                        deleteButton.visible = true
+                                    if (stat == PackageManager.Installed) {
+                                        installButton.visible = false
+                                        updateButton.visible = false
+                                    } else if (stat == PackageManager.Updatable) {
+                                        installButton.visible = false
                                         updateButton.visible = true
-                                    } else if (stat === "NotInstalled") {
-                                        installButton.visible = true
+                                    } else if (stat == PackageManager.NotInstalled) {
+                                        deleteButton.visible = false
+                                        updateButton.visible = false
                                     }
                                 } else {
-                                    repositoryButton.enabled = true
+                                    deleteButton.visible = false
+                                    updateButton.visible = false
+                                    installButton.visible = false
                                 }
                                 appRect.appIconSize = 64
                                 appRect.indicatorVisible = false

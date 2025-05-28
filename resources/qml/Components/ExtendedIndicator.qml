@@ -17,7 +17,6 @@ Item {
         sourceComponent: root.type === "busy" ? busyIndicatorComponent : progressIndicatorComponent
     }
 
-    // Компонент BusyIndicator
     Component {
         id: busyIndicatorComponent
         BusyIndicator {
@@ -26,7 +25,6 @@ Item {
         }
     }
 
-    // Компонент CircleProgress
     Component {
         id: progressIndicatorComponent
         ProgressIndicator {
