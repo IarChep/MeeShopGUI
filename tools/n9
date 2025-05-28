@@ -1,0 +1,11 @@
+﻿[settings]
+arch=armv7hf
+compiler=gcc
+compiler.libcxx=libstdc++11
+compiler.version = 14
+os=Linux
+
+[buildenv]
+CC=/opt/harmattan-gcc-14.1/bin/arm-none-linux-gnueabi-gcc
+CXX=/opt/harmattan-gcc-14.1/bin/arm-none-linux-gnueabi-g++
+LD=/opt/harmattan-gcc-14.1/bin/arm-none-linux-gnueabi-ld

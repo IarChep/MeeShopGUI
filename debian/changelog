@@ -1,0 +1,7 @@
+meeshop (0.0.2) unstable; urgency=low
+
+  * Categories are fully implementes
+  * Footer and Header for app list
+  * Better "is app installed" resolving logic
+
+ -- IarChep <yarchepel@gmail.com>  Sat, 28 May 2025 13:45:00 +0000
