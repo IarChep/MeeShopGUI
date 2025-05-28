@@ -102,8 +102,8 @@ Page {
         id: listFooter
         LoadMoreRectangle {
             id: footerItem
-            height: mainList.showFooter ? 90 : 0
-            opacity: mainList.showFooter ? 1 : 0
+            height: (mainList.showFooter && api.isNextPageAvailible) ? 90 : 0
+            opacity: (mainList.showFooter && api.isNextPageAvailible) ? 1 : 0
             Behavior on height {
                 NumberAnimation { duration: 300; easing.type: Easing.InOutQuad }
             }
@@ -124,6 +124,25 @@ Page {
             }
         }
     }
+    Rectangle {
+        color: "transparent"
+        anchors {
+            top: header.bottom
+            left: parent.left
+            right: parent.right
+            bottom: parent.bottom
+        }
+        Text {
+            anchors.centerIn: parent
+            id: emptyCatText
+            text: "This category is empty :("
+            font.pixelSize: 20
+            visible: api.appModel.isEmpty()
+        }
+    }
+
+
+
     ListView {
         id: mainList
         width: parent.width
@@ -165,6 +184,7 @@ Page {
 
         Connections {
             target: api.appModel
+
             onPageBackAdded: {
                 mainList.endReached = false;
                 mainList.startReached = false;
@@ -181,12 +201,12 @@ Page {
         }
 
         onAtYEndChanged: {
-            if (atYEnd && !endReached) {
+            if (atYEnd && !endReached && api.isNextPageAvailible) {
                 endReached = true;
                 page.footerRotating = true;
                 console.log("end");
                 page.page += 1;
-                api.getCategoryAppsPage(page.category, page.page);
+                api.getCategoryAppsPage(page.category, page.page + 1);
             }
         }
         onAtYBeginningChanged: {
@@ -204,8 +224,10 @@ Page {
         id: waiter
         Connections {
             target: api
-            onAppModelChanged: {
-                waiter.hide()
+            onFinished: {
+                if (waiter.opacity == 1.0) {
+                    waiter.hide()
+                }
             }
         }
     }
@@ -223,6 +245,7 @@ Page {
         target: catSheet
         onAccepted: {
             page.page = 0;
+            waiter.show();
             mainList.resetVars();
             api.getCategoryApps(page.category);
         }

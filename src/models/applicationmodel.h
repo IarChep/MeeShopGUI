@@ -33,24 +33,26 @@ public:
         setRoleNames(roles);
     }
 
+    void setCachePage(const json &jsonDoc);
     void pushPageBack(const json &jsonDoc);
     void pushPageFront(const json &jsonDoc);
+    void nextPageFromCache();
 
     int rowCount(const QModelIndex & parent = QModelIndex()) const;
 
     QVariant data(const QModelIndex & index, int role = Qt::DisplayRole) const;
 
-    Q_INVOKABLE void reset() {
-        beginResetModel();
-        m_jsonList.clear();
-        endResetModel();
+    Q_INVOKABLE bool isEmpty() {
+        return m_jsonList.empty() && m_cachedPage.empty();
     }
 
 signals:
     void pageBackAdded();
     void pageFrontAdded(int frontAddedSize);
+
 private:
     QList<json> m_jsonList;
+    json m_cachedPage;
 };
 }
 

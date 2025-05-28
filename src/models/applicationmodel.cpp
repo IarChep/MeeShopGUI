@@ -4,6 +4,9 @@
 namespace MeeShop {
 
 
+void ApplicationModel::setCachePage(const json &jsonDoc) {
+    m_cachedPage = jsonDoc;
+}
 void ApplicationModel::pushPageBack(const json &page)
 {
     int lastRow = rowCount();
@@ -32,6 +35,9 @@ void ApplicationModel::pushPageFront(const json &page)
         endRemoveRows();
     }
     emit pageFrontAdded(page.size());
+}
+void ApplicationModel::nextPageFromCache() {
+    pushPageBack(m_cachedPage);
 }
 
 int ApplicationModel::rowCount(const QModelIndex &parent) const {

@@ -43,7 +43,6 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
     qmlRegisterType<MeeShop::ProgressIndicator>("IarChep.MeeShop", 1, 0, "ProgressIndicator");
 
     qRegisterMetaType<MeeShop::ApplicationModel*>();
-    //qRegisterMetaType<MeeShop::PackageManager::InstallationStatus>();
 
     QmlApplicationViewer viewer;
     QDeclarativeContext* rootContext = viewer.rootContext();

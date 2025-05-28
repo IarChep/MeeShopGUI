@@ -29,7 +29,7 @@ Rectangle {
         }
         font.pixelSize: 26
         font.bold: true
-        text: categoryName + " (" + categoryAmount + " apps)"
+        text: categoryName
     }
     Image {
         visible: !catDelegate.hasKids
