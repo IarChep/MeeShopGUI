@@ -7,7 +7,6 @@
         <file>qml/Components/Header.qml</file>
         <file>qml/Components/UIConstants.js</file>
         <file>qml/main.qml</file>
-        <file>images/rss-page-icon.png</file>
         <file>qml/Components/CategoryDelegate.qml</file>
         <file>images/headerImage.png</file>
         <file>qml/Components/CategoriesSheet.qml</file>
@@ -25,5 +24,6 @@
         <file>qml/Pages/AppPage.qml</file>
         <file>qml/Components/ExtendedIndicator.qml</file>
         <file>qml/Components/LoadMoreRectangle.qml</file>
+        <file>images/icon-like.png</file>
     </qresource>
 </RCC>

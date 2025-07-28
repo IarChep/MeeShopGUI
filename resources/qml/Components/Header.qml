@@ -1,4 +1,5 @@
 import QtQuick 1.1
+import "UIConstants.js" as Ui
 
 Rectangle{
     id: root
@@ -11,7 +12,7 @@ Rectangle{
     property bool clickable: false
     signal clicked()
     width: parent.width
-    height: 72
+    height: Ui.HEADER_DEFAULT_HEIGHT_PORTRAIT
     color: "black"
     Image {
         source: "../../images/headerImage.png"

@@ -12,16 +12,22 @@
 #include "models/categoriesmodel.h"
 #include "qml_elements/gradienter.h"
 #include "tools/packagemanager.h"
+#include "tools/packageutils.h"
 #include "qml_elements/nokiashape.h"
 #include "qml_elements/progressindicator.h"
 #include "tools/notifyer.h"
 #include <QTextCodec>
+#include "tools/settings.h"
 
 
 
 Q_DECL_EXPORT int main(int argc, char *argv[])
 {
     QScopedPointer<QApplication> app(createApplication(argc, argv));
+    QCoreApplication::setApplicationName("MeeShop");
+    QCoreApplication::setOrganizationName("IarChep");
+    Settings& settings = Settings::getInstance();
+
     QTextCodec *utfCodec = QTextCodec::codecForName("UTF-8");
     QTextCodec::setCodecForLocale(utfCodec);
     QTextCodec::setCodecForCStrings(utfCodec);

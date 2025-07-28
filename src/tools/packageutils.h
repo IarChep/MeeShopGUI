@@ -4,23 +4,33 @@
 #include <QObject>
 #include <QFile>
 #include <QTextStream>
+#include <QSettings>
 #include <QMultiHash>
 #include <QVariant>
 #include <QVariantMap>
 #include <QDebug>
 #include <QRegExp>
+#include <QProcess>
 
 #include <vector>
 #include <string>
 #include <algorithm>
 #include <cctype>
 
+#include <QSettings>
+#include "settings.h"
+
+#include <nlohmann/json.hpp>
+
 
 namespace MeeShop {
 
-class PackageUtils
+class PackageUtils : public QObject
 {
+    Q_OBJECT
 public:
+    explicit PackageUtils(QObject *parent = nullptr, QSettings& settings = Settings::getInstance().getSettings()) : m_qsettings(settings) {}
+
     static QMultiHash<QString, QVariantMap> parsePkgDatabase(const  QString filePath);
     static QString findMaxVersion(const QString packageName, const QString filePath);
 
@@ -29,6 +39,13 @@ public:
 
     static QString getRepoPath(const QString name);
     static QString getRepoPackagesPath(const QString name);
+
+    Q_INVOKABLE bool isRunnable(const QString package);
+    Q_INVOKABLE void run(const QString package);
+    //Q_INVOKABLE  QStringList getMeeShopInstalledApps();
+private:
+    nlohmann::json m_cacheJson;
+    QSettings& m_qsettings;
 };
 
 } // namespace MeeShop

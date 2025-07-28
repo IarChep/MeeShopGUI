@@ -1,9 +1,11 @@
 import QtQuick 1.1
 import com.nokia.meego 1.1
 import "../Components"
+import "../Components/UIConstants.js" as Ui
 import IarChep.MeeShop 1.0
 
 Page {
+    id: page
     property int appId
     property variant appInfo: api.appInfo
     property variant gradientColors: gradienter.gradientColors
@@ -27,10 +29,9 @@ Page {
         flickableDirection: Flickable.VerticalFlick
 
         Rectangle {
-
             id: appPreviewRect
             width: parent.width
-            height: 200
+            height: previewColumn.implicitHeight + 2*Ui.PADDING_XXLARGE
             gradient: Gradient {
                 GradientStop {
                     position: 0.0
@@ -43,8 +44,10 @@ Page {
             }
 
             Column {
+                id: previewColumn
+                width: parent.width - 2*Ui.PADDING_XLARGE
                 anchors.centerIn: parent
-                spacing: 15
+                spacing: Ui.PADDING_XLARGE
                 NokiaShape {
                     anchors.horizontalCenter: parent.horizontalCenter
                     width: 80
@@ -58,8 +61,10 @@ Page {
                     }
                 }
                 Text {
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    text: appInfo.title
+                    width: parent.width
+                    horizontalAlignment: Text.AlignHCenter
+                    wrapMode: Text.WordWrap
+                    text: appInfo.title.trim()
                     color: "white"
                     font.pixelSize: 25
                     font.bold: true
@@ -69,24 +74,29 @@ Page {
         Rectangle {
             id: appRect
             width: parent.width
-            height: 170
+            height: appColumn.implicitHeight + 2*Ui.PADDING_XLARGE
             y: appPreviewRect.height
             color: "#e0e1e2"
             z: 1
             Column {
+                id: appColumn
                 width: parent.width
-                anchors.verticalCenter: parent.verticalCenter
-                spacing: 10
+                anchors {
+                    top: parent.top
+                    bottom: parent.bottom
+                    left: parent.left
+                    right: parent.right
+                    margins: Ui.MARGIN_XLARGE
+                }
+
+                spacing: Ui.PADDING_DOUBLE
                 Row {
-                    anchors {
-                        right: parent.right
-                        left: parent.left
-                        leftMargin: 15
-                    }
-                    spacing: 15
+                    width: page.width - 2 * Ui.MARGIN_XLARGE
+                    spacing: Ui.PADDING_DOUBLE
                     Item {
                         width: 64
                         height: width
+                        anchors.verticalCenter: parent.verticalCenter
                         ExtendedIndicator {
                             id: actionIndicator
                             type: "busy"
@@ -126,21 +136,35 @@ Page {
 
 
                     Column {
+                        width: parent.width - 64 - parent.spacing
                         Text {
-                            text: appInfo.title
+                            width: parent.width
+                            text: appInfo.title.trim()
+                            font.family: Ui.FONT_FAMILY
+                            font.pixelSize: Ui.FONT_DEFAULT
+                            wrapMode: Text.WordWrap
                             color: "black"
-                            font.pixelSize: 25
                         }
                         Text {
-                            text: "By: " + appInfo.user.name
+                            text: "By: " + appInfo.user.name.trim()
+                            font.family: Ui.FONT_FAMILY_LIGHT
                             color: "black"
-                            font.pixelSize: 20
+                            font.pixelSize: Ui.FONT_SMALL
                         }
                     }
                 }
                 ButtonRow {
-                    anchors.horizontalCenter: parent.horizontalCenter
+                    id: buttonRow
                     exclusive: false
+                    height: 56
+                    width: page.width - Ui.PADDING_XLARGE * 2
+                    __maxButtonSize: page.width - Ui.PADDING_XLARGE * 2
+                    platformStyle: ButtonStyle {
+                        buttonWidth: page.width - 2*Ui.PADDING_XLARGE;
+                        buttonHeight: 56
+                        __colorString: "color8-"
+                    }
+
                     Button {
                         id: repositoryButton
                         text: "Enable repository"
@@ -154,8 +178,8 @@ Page {
                         }
                     }
                     Button {
-                        id: deleteButton
-                        text: "Delete"
+                        id: removeButton
+                        text: "Remove"
                     }
                     Button {
                         id: updateButton
@@ -168,6 +192,11 @@ Page {
                         }
                     }
                     Button {
+                        id: launchButton
+                        text: "Launch"
+                    }
+
+                    Button {
                         id: installButton
                         text: "Install"
                         onClicked: {
@@ -178,27 +207,29 @@ Page {
                             packageManager.installPackage(appInfo.packages.harmattan.name ? appInfo.packages.harmattan.name : appInfo.package.name);
                         }
                     }
+
                     Connections {
                         target: packageManager
                         onUpdateFinished: {
                             if (code === 0) {
                                 if(packageManager.isRepositoryEnabled(appInfo.user.name)) {
                                     var stat = packageManager.isInstalled(appInfo.packages.harmattan.name, appInfo.user.name)
-                                    repositoryButton.visible = false
+                                    repositoryButton.visible = false;
                                     if (stat == PackageManager.Installed) {
-                                        installButton.visible = false
-                                        updateButton.visible = false
+                                        installButton.visible = false;
+                                        updateButton.visible = false;
                                     } else if (stat == PackageManager.Updatable) {
-                                        installButton.visible = false
-                                        updateButton.visible = true
+                                        installButton.visible = false;
                                     } else if (stat == PackageManager.NotInstalled) {
-                                        deleteButton.visible = false
-                                        updateButton.visible = false
+                                        deleteButton.visible = false;
+                                        updateButton.visible = false;
+                                        launchButton.visible = false;
                                     }
                                 } else {
-                                    deleteButton.visible = false
-                                    updateButton.visible = false
-                                    installButton.visible = false
+                                    launchButton.visible = false;
+                                    removeButton.visible = false;
+                                    updateButton.visible = false;
+                                    installButton.visible = false;
                                 }
                                 appRect.appIconSize = 64
                                 appRect.indicatorVisible = false
@@ -206,14 +237,15 @@ Page {
                         }
                         onInstallationFinished: {
                             packageManager.cacheInstalledPackages()
-                            installButton.visible = false
-                            updateButton.visible = false
-                            deleteButton.visible = true
+                            installButton.visible = false;
+                            updateButton.visible = false;
+                            removeButton.visible = true;
+                            launchButton.visible = true;
+
 
                             appRect.appIconSize = 64
                             appRect.indicatorVisible = false
                         }
-
                     }
                 }
             }
@@ -312,6 +344,47 @@ Page {
                 font.pixelSize: 20
                 text: appInfo.body !== undefined ? appInfo.body + "<br>" : ""
             }
+
+            SectionHeader {
+                text: "Screenshots"
+                visible: appInfo.screenshots ? true : false
+            }
+            Flickable {
+                boundsBehavior: Flickable.StopAtBounds
+                flickableDirection: Flickable.HorizontalFlick
+                height: screenshotRow.implicitHeight
+                width: parent.width - 20
+                anchors.horizontalCenter: parent.horizontalCenter
+                contentWidth: screenshotRow.implicitWidth
+                clip: true
+                visible: appInfo.screenshots ? true : false
+                Row {
+                    id: screenshotRow
+                    spacing: Ui.PADDING_SMALL
+                    Repeater {
+                        model: appInfo.screenshots.length
+                        Image {
+                            source: appInfo.screenshots[index].thumbs.medium
+                            Rectangle {
+                                anchors.fill: parent
+                                color: "black"
+                                opacity: imageMouseArea.pressed ? 0.3 : 0
+                            }
+                            MouseArea {
+                                id: imageMouseArea
+                                anchors.fill: parent
+                                onClicked: {
+                                    Qt.openUrlExternally(appInfo.screenshots[index].url)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+
+
+
             SectionHeader {
                 text: "Changelog"
                 visible: textChangelog.text.length
@@ -364,21 +437,22 @@ Page {
         onGradientChanged: {
             if(packageManager.isRepositoryEnabled(appInfo.user.name)) {
                 var stat = packageManager.isInstalled(appInfo.packages.harmattan.name, appInfo.user.name)
-                repositoryButton.visible = false
+                repositoryButton.visible = false;
                 if (stat == PackageManager.Installed) {
-                    installButton.visible = false
-                    updateButton.visible = false
+                    installButton.visible = false;
+                    updateButton.visible = false;
                 } else if (stat == PackageManager.Updatable) {
-                    installButton.visible = false
-                    updateButton.visible = true
+                    installButton.visible = false;
                 } else if (stat == PackageManager.NotInstalled) {
-                    deleteButton.visible = false
-                    updateButton.visible = false
+                    removeButton.visible = false;
+                    updateButton.visible = false;
+                    launchButton.visible = false;
                 }
             } else {
-                deleteButton.visible = false
-                updateButton.visible = false
-                installButton.visible = false
+                launchButton.visible = false;
+                removeButton.visible = false;
+                updateButton.visible = false;
+                installButton.visible = false;
             }
 
             waiter.hide();

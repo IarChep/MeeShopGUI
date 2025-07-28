@@ -11,9 +11,9 @@ void OpenReposApi::getCategories() {
 }
 
 void OpenReposApi::getCategoryApps(int cat_id) {
-    currentCategory = cat_id;
-    currentPage = 0;
-    lastPage = 0;
+    m_currCat.categoryId = cat_id;
+    m_currCat.currentPage = 0;
+    m_currCat.lastPage = 0;
     m_nextPageAvailible = false;
 
     QNetworkRequest request = this->createRequest(QUrl(baseUrl + QString("/categories/%1/apps?page=0").arg(cat_id)));
@@ -22,7 +22,7 @@ void OpenReposApi::getCategoryApps(int cat_id) {
 }
 
 void OpenReposApi::getCategoryAppsPage(int cat_id, int page) {
-    currentPage = page;
+    m_currCat.currentPage = page;
     QString currentRoute = QString("/categories/%1/apps?page=%2").arg(cat_id).arg(page);
     QNetworkRequest request = this->createRequest(QUrl(baseUrl + currentRoute));
     QNetworkReply *reply = manager.get(request);
@@ -57,10 +57,10 @@ void OpenReposApi::process_apps_first() {
     if (reply->error() == QNetworkReply::NoError) {
         nlohmann::json jsonObj = parseJson(reply->readAll());
         appModel = new MeeShop::ApplicationModel(this);
-        lastPage = 0;
+        m_currCat.lastPage = 0;
         if (!jsonObj.empty()) {
             appModel->setCachePage(jsonObj);
-            QNetworkRequest request(QUrl(baseUrl + QString("/categories/%1/apps?page=%2").arg(currentCategory).arg(1)));
+            QNetworkRequest request(QUrl(baseUrl + QString("/categories/%1/apps?page=%2").arg(m_currCat.categoryId).arg(1)));
             QNetworkReply *newReply = manager.get(request);
             QObject::connect(newReply, SIGNAL(finished()), this, SLOT(process_apps()));
         } else {
@@ -81,7 +81,7 @@ void OpenReposApi::process_apps() {
     if (reply->error() == QNetworkReply::NoError) {
         nlohmann::json jsonObj = parseJson(reply->readAll());
 
-        if (currentPage >= lastPage) {
+        if (m_currCat.currentPage >= m_currCat.lastPage) {
             appModel->nextPageFromCache();
             if (!jsonObj.empty()) {
                 appModel->setCachePage(jsonObj);
@@ -102,7 +102,7 @@ void OpenReposApi::process_apps() {
             /*/
         }
 
-        lastPage = currentPage;
+        m_currCat.lastPage = m_currCat.currentPage;
         emit appModelChanged();
         emit finished(true);
     } else {

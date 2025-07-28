@@ -4,6 +4,7 @@
 #include <QAbstractListModel>
 #include <nlohmann/json.hpp>
 #include <QList>
+#include <unordered_map>
 #include <algorithm>
 #include <QDebug>
 #include <QString>
@@ -44,7 +45,9 @@ public:
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;
 
     Q_INVOKABLE QString getCatName(int index) { return QString::fromStdString(m_json.at(index)["name"].get<std::string>()); }
-
+    Q_INVOKABLE QString getCatName(QString tid) {
+        return m_nameCache[tid.toStdString()];
+    }
     Q_INVOKABLE void toggleKids(const QString &categoryName);
 
 signals:
@@ -52,6 +55,7 @@ signals:
 
 private:
     json m_json;
+    std::unordered_map<std::string, QString> m_nameCache;
     QString m_expandedCategory; // Пустая строка означает, что ни одна категория не открыта
 
     void collapseCategory(const QString &categoryName);

@@ -12,6 +12,12 @@
 #include "../models/categoriesmodel.h"
 #include <QVariantHash>
 
+struct CategoryInfo {
+    int categoryId = 1;
+    int currentPage = 0;
+    int lastPage = INT_MAX;
+};
+
 namespace MeeShop {
 
 class OpenReposApi : public QObject
@@ -23,7 +29,6 @@ class OpenReposApi : public QObject
     Q_PROPERTY(bool isNextPageAvailible READ nextPageAvailible NOTIFY nextPageAvailibleChanged)
 public:
     explicit OpenReposApi(QObject *parent = nullptr) : QObject{parent},
-        lastPage(0),
         appModel(new MeeShop::ApplicationModel(this)), categoryModel(new MeeShop::CategoriesModel(this)),
         baseUrl("http://openrepos.wunderwungiel.pl/api/v1")
     {
@@ -61,9 +66,7 @@ private:
     nlohmann::json parseJson(const QByteArray& data);
     QVariant jsonToVariant(const nlohmann::json& json);
 
-    int currentCategory;
-    int lastPage;
-    int currentPage;
+    CategoryInfo m_currCat;
     bool m_nextPageAvailible;
 
     QString baseUrl;

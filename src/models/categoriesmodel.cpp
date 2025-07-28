@@ -8,6 +8,14 @@ void CategoriesModel::setJson(const json &jsonDoc)
     beginResetModel();
     m_json = jsonDoc;
     m_expandedCategory = "";
+    for (const auto& category : m_json) {
+        m_nameCache[category.at("tid").get<std::string>()] = QString::fromStdString(category.at("name").get<std::string>());
+        if(category.contains("childrens")) {
+            for (const auto& child : category.at("childrens")) {
+                m_nameCache[child.at("tid").get<std::string>()] = QString::fromStdString(child.at("name").get<std::string>());
+            }
+        }
+    }
     endResetModel();
     emit countChanged();
 }

@@ -173,4 +173,89 @@ int PackageUtils::compareVersions(const std::string& v1, const std::string& v2) 
     return 0;
 }
 
+bool PackageUtils::isRunnable(const QString package) {
+    const std::string pkgKey = package.toStdString();
+    if (m_cacheJson.contains(pkgKey)) {
+        return m_cacheJson[pkgKey]["runnable"].get<bool>();
+    }
+
+    auto cacheResult = [&](bool runnable, const QString &desktopPath = QString()) {
+        m_cacheJson[pkgKey]["runnable"] = runnable;
+        if (!desktopPath.isEmpty()) {
+            m_cacheJson[pkgKey]["desktop-file"] = desktopPath.toStdString();
+        }
+        return runnable;
+    };
+
+    QProcess process;
+
+    process.start("/bin/dpkg", QStringList() << "-L" << package);
+
+    if (!process.waitForStarted(3000)) {
+        qDebug() << "Failed to start dpkg for package" << package;
+        return cacheResult(false);
+    }
+
+    QByteArray buffer;
+    static const QByteArray applicationPrefix = "/usr/share/applications/";
+    static const QByteArray desktopSuffix = ".desktop";
+
+    while (process.state() == QProcess::Running || process.bytesAvailable() > 0) {
+
+        if (!process.waitForReadyRead(500)) {
+            if (process.state() != QProcess::Running) {
+                break;
+            }
+            continue;
+        }
+
+        QByteArray data = process.readAllStandardOutput();
+        buffer.append(data);
+
+        int start = 0;
+        int newlinePos;
+
+        while ((newlinePos = buffer.indexOf('\n', start)) != -1) {
+            QByteArray line = buffer.mid(start, newlinePos - start);
+            start = newlinePos + 1;
+
+            if (line.startsWith(applicationPrefix) && line.endsWith(desktopSuffix)) {
+                QString desktopFile = QString::fromUtf8(line).trimmed();
+                process.kill();
+                process.waitForFinished(1000);
+                return cacheResult(true, desktopFile);
+            }
+        }
+        if (start > 0) {
+            buffer.remove(0, start);
+        }
+    }
+
+    if (!buffer.isEmpty()) {
+        if (buffer.startsWith(applicationPrefix) && buffer.endsWith(desktopSuffix)) {
+            QString desktopFile = QString::fromUtf8(buffer).trimmed();
+            return cacheResult(true, desktopFile);
+        }
+    }
+
+    if (process.exitCode() != 0) {
+        qDebug() << "dpkg failed for package" << package
+                 << "with exit code" << process.exitCode();
+    }
+
+    return cacheResult(false);
+}
+
+void PackageUtils::run(const QString package) {
+    QString prog = "/usr/bin/xdg-open";
+    QStringList args;
+    args << QString::fromStdString(m_cacheJson[package.toStdString()]["desktop-file"].get<std::string>());
+    qint64 pid;
+    if(QProcess::startDetached(prog, args, QString(), &pid)) {
+        qDebug() << "Sucsessfully ran " << package << " with pid " << pid;
+    } else {
+        qDebug() << "Failed to run " << package << " with pid " << pid;
+    }
+}
+
 } // namespace MeeShop
