@@ -4,7 +4,7 @@ project(MeeShop LANGUAGES CXX)
 
 option(BUILD_N9 "Build MeeShop for n9" OFF)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON) # Enforce the standard
 set(QML_IMPORT_PATH "/home/iarchep/QtSDK/Simulator/Qt/gcc/imports" CACHE STRING "Path to QML imports") # Added a description
 

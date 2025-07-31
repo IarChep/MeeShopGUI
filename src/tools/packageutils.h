@@ -17,7 +17,6 @@
 #include <algorithm>
 #include <cctype>
 
-#include <QSettings>
 #include "settings.h"
 
 #include <nlohmann/json.hpp>
@@ -29,7 +28,7 @@ class PackageUtils : public QObject
 {
     Q_OBJECT
 public:
-    explicit PackageUtils(QObject *parent = nullptr, QSettings& settings = Settings::getInstance().getSettings()) : m_qsettings(settings) {}
+    explicit PackageUtils(QObject *parent = nullptr, Settings& settings = Settings::getInstance()) : m_qsettings(settings) {}
 
     static QMultiHash<QString, QVariantMap> parsePkgDatabase(const  QString filePath);
     static QString findMaxVersion(const QString packageName, const QString filePath);
@@ -45,7 +44,7 @@ public:
     //Q_INVOKABLE  QStringList getMeeShopInstalledApps();
 private:
     nlohmann::json m_cacheJson;
-    QSettings& m_qsettings;
+    Settings& m_qsettings;
 };
 
 } // namespace MeeShop
