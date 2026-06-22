@@ -1,65 +1,48 @@
-// pseudoTerminal.h
-#ifndef PSEUDO_TERM
-#define PSEUDO_TERM
+// pseudoterminal.h
+#ifndef PSEUDO_TERM_H
+#define PSEUDO_TERM_H
 
-#include <iostream>
-#include <unistd.h>
-#include <pty.h>
-#include <utmp.h>
-#include <fcntl.h>
-#include <sys/select.h>
+#include <QObject>
+#include <QByteArray>
+#include <QString>
+#include <QStringList>
 #include <sys/types.h>
-#include <sys/wait.h>
-#include <cerrno>
-#include <cstring>
-#include <vector>
-#include <sstream>
-#include <algorithm>
-#include <functional>
-#include <stdexcept>
-#include <regex>
-#include <thread>
-#include <mutex>
 
-class PseudoTerm {
+class QSocketNotifier;
+
+// Запускает программу в псевдотерминале и читает её вывод построчно.
+// Полностью в духе Qt: QObject + QSocketNotifier (читаем в цикле событий
+// главного потока, без рукотворных потоков, лямбд и гонок).
+class PseudoTerm : public QObject {
+    Q_OBJECT
 public:
-    PseudoTerm();
+    explicit PseudoTerm(QObject *parent = 0);
     ~PseudoTerm();
 
-    void run_command(const std::string& programPath, const std::vector<std::string>& args);
+    bool isRunning() const { return m_pid > 0; }
 
-    std::function<void(const std::string&)> OnOutputReceived;
-    std::function<void(int)> OnProgramExited;
-    std::function<void(int)> OnProgramErrored;
+    // Запускает программу. Возвращает false, если уже идёт другая команда
+    // или не удалось создать процесс (тогда эмитится failed()).
+    bool start(const QString &program, const QStringList &arguments);
+
+signals:
+    void lineRead(const QString &line);   // очередная строка вывода
+    void finished(int exitCode);          // нормальное завершение
+    void failed(const QString &error);    // не удалось запустить / убит сигналом
+
+private slots:
+    void onReadyRead();
 
 private:
-    int master_fd;
-    pid_t pid;
+    void emitLines();
+    void finish();
+    void cleanup();
+    static QString sanitize(const QByteArray &raw);
 
-    // Функция обработки строки (оставляем без изменений).
-    void process_line(std::string line) {
-        // Удалить все непечатаемые символы с начала строки
-        while (!line.empty() &&
-               (static_cast<unsigned char>(line.front()) < 32 ||
-                static_cast<unsigned char>(line.front()) > 126)) {
-            line.erase(0, 1);
-        }
-        // Удалить все непечатаемые символы с конца строки
-        while (!line.empty() &&
-               (static_cast<unsigned char>(line.back()) < 32 ||
-                static_cast<unsigned char>(line.back()) > 126)) {
-            line.pop_back();
-        }
-
-        // Удалить ANSI escape-коды из строки
-        std::regex ansi_regex(R"(\x1B\[[0-?]*[ -/]*[@-~])");
-        line = std::regex_replace(line, ansi_regex, "");
-
-        // Вызов общего callback, даже для пустых строк.
-        if (OnOutputReceived) {
-            OnOutputReceived(line);
-        }
-    }
+    int m_masterFd;
+    pid_t m_pid;
+    QSocketNotifier *m_notifier;
+    QByteArray m_buffer;
 };
 
 #endif

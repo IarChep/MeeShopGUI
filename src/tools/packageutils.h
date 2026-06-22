@@ -32,6 +32,7 @@ public:
 
     static QMultiHash<QString, QVariantMap> parsePkgDatabase(const  QString filePath);
     static QString findMaxVersion(const QString packageName, const QString filePath);
+    static QString findMaxVersion(const QString packageName, const QMultiHash<QString, QVariantMap> &packages);
 
     static int compareVersions(const std::string& v1, const std::string& v2);
     static std::vector<std::string> splitVersion(const std::string& version);

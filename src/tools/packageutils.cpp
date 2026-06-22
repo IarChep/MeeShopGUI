@@ -59,10 +59,12 @@ QString PackageUtils::getRepoPackagesPath(QString name) {
 }
 
 QString PackageUtils::findMaxVersion(const QString packageName, const QString filePath) {
-    QMultiHash<QString, QVariantMap> packages = parsePkgDatabase(filePath);
+    return findMaxVersion(packageName, parsePkgDatabase(filePath));
+}
 
+QString PackageUtils::findMaxVersion(const QString packageName, const QMultiHash<QString, QVariantMap> &packages) {
     if (!packages.contains(packageName)) {
-        qWarning() << "Пакет" << packageName << "не найден в файле" << filePath;
+        qWarning() << "Пакет" << packageName << "не найден";
         return QString();
     }
 
@@ -74,12 +76,10 @@ QString PackageUtils::findMaxVersion(const QString packageName, const QString fi
     QString maxVersion = versions.first()["Version"].toString();
     for (const QVariantMap& pkg : versions) {
         QString version = pkg["Version"].toString();
-        qDebug() << "Found version" << version << "for" << packageName << "in repository" << "\n versionLess than:" << maxVersion << compareVersions(maxVersion.toStdString(), version.toStdString());
         if (compareVersions(maxVersion.toStdString(), version.toStdString()) < 0) {
             maxVersion = version;
         }
     }
-    qDebug() << "maxVersion for" << packageName << "is" << maxVersion;
     return maxVersion;
 }
 
@@ -107,11 +107,45 @@ std::vector<std::string> PackageUtils::splitVersion(const std::string& version) 
     return parts;
 }
 
+namespace {
+// Сравнивает разбитые на токены части версии (upstream или revision).
+// Числовые токены сравниваются как числа, остальные — лексикографически;
+// числовой токен старше нечислового. Пустая строка трактуется как 0.
+int compareParts(const std::vector<std::string> &a, const std::vector<std::string> &b) {
+    size_t maxLen = std::max(a.size(), b.size());
+    for (size_t i = 0; i < maxLen; ++i) {
+        std::string p1 = (i < a.size()) ? a[i] : "";
+        std::string p2 = (i < b.size()) ? b[i] : "";
+        bool num1 = std::all_of(p1.begin(), p1.end(), ::isdigit);
+        bool num2 = std::all_of(p2.begin(), p2.end(), ::isdigit);
+        if (!num1 && !num2) {
+            if (p1 < p2) return -1;
+            if (p1 > p2) return 1;
+        } else if (num1 && num2) {
+            int n1 = 0, n2 = 0;
+            try { n1 = std::stoi(p1.empty() ? "0" : p1); } catch (...) {}
+            try { n2 = std::stoi(p2.empty() ? "0" : p2); } catch (...) {}
+            if (n1 < n2) return -1;
+            if (n1 > n2) return 1;
+        } else {
+            return num1 ? 1 : -1;
+        }
+    }
+    return 0;
+}
+
+int parseEpoch(const std::string &v, size_t colonPos) {
+    if (colonPos == std::string::npos) return 0;
+    try { return std::stoi(v.substr(0, colonPos)); } catch (...) { return 0; }
+}
+}
+
 int PackageUtils::compareVersions(const std::string& v1, const std::string& v2) {
     size_t colonPos1 = v1.find(':');
     size_t colonPos2 = v2.find(':');
-    int epoch1 = (colonPos1 != std::string::npos) ? std::stoi(v1.substr(0, colonPos1)) : 0;
-    int epoch2 = (colonPos2 != std::string::npos) ? std::stoi(v2.substr(0, colonPos2)) : 0;
+    int epoch1 = parseEpoch(v1, colonPos1);
+    int epoch2 = parseEpoch(v2, colonPos2);
+    if (epoch1 != epoch2) return epoch1 < epoch2 ? -1 : 1;
 
     std::string upstream1 = (colonPos1 != std::string::npos) ? v1.substr(colonPos1 + 1) : v1;
     std::string upstream2 = (colonPos2 != std::string::npos) ? v2.substr(colonPos2 + 1) : v2;
@@ -124,53 +158,10 @@ int PackageUtils::compareVersions(const std::string& v1, const std::string& v2) 
     std::string upstreamPart1 = (hyphenPos1 != std::string::npos) ? upstream1.substr(0, hyphenPos1) : upstream1;
     std::string upstreamPart2 = (hyphenPos2 != std::string::npos) ? upstream2.substr(0, hyphenPos2) : upstream2;
 
-    if (epoch1 < epoch2) return -1;
-    if (epoch1 > epoch2) return 1;
+    int up = compareParts(splitVersion(upstreamPart1), splitVersion(upstreamPart2));
+    if (up != 0) return up;
 
-    std::vector<std::string> parts1 = splitVersion(upstreamPart1);
-    std::vector<std::string> parts2 = splitVersion(upstreamPart2);
-
-    size_t maxLen = std::max(parts1.size(), parts2.size());
-    for (size_t i = 0; i < maxLen; ++i) {
-        std::string p1 = (i < parts1.size()) ? parts1[i] : "";
-        std::string p2 = (i < parts2.size()) ? parts2[i] : "";
-        if (!std::all_of(p1.begin(), p1.end(), ::isdigit) && !std::all_of(p2.begin(), p2.end(), ::isdigit)) {
-            if (p1 < p2) return -1;
-            if (p1 > p2) return 1;
-        } else if (std::all_of(p1.begin(), p1.end(), ::isdigit) && std::all_of(p2.begin(), p2.end(), ::isdigit)) {
-            int num1 = std::stoi(p1.empty() ? "0" : p1);
-            int num2 = std::stoi(p2.empty() ? "0" : p2);
-            if (num1 < num2) return -1;
-            if (num1 > num2) return 1;
-        } else if (std::all_of(p1.begin(), p1.end(), ::isdigit)) {
-            return 1;
-        } else if (std::all_of(p2.begin(), p2.end(), ::isdigit)) {
-            return -1;
-        }
-    }
-
-    std::vector<std::string> revParts1 = splitVersion(revision1);
-    std::vector<std::string> revParts2 = splitVersion(revision2);
-
-    maxLen = std::max(revParts1.size(), revParts2.size());
-    for (size_t i = 0; i < maxLen; ++i) {
-        std::string p1 = (i < revParts1.size()) ? revParts1[i] : "";
-        std::string p2 = (i < revParts2.size()) ? revParts2[i] : "";
-        if (!std::all_of(p1.begin(), p1.end(), ::isdigit) && !std::all_of(p2.begin(), p2.end(), ::isdigit)) {
-            if (p1 < p2) return -1;
-            if (p1 > p2) return 1;
-        } else if (std::all_of(p1.begin(), p1.end(), ::isdigit) && std::all_of(p2.begin(), p2.end(), ::isdigit)) {
-            int num1 = std::stoi(p1.empty() ? "0" : p1);
-            int num2 = std::stoi(p2.empty() ? "0" : p2);
-            if (num1 < num2) return -1;
-            if (num1 > num2) return 1;
-        } else if (std::all_of(p1.begin(), p1.end(), ::isdigit)) {
-            return 1;
-        } else if (std::all_of(p2.begin(), p2.end(), ::isdigit)) {
-            return -1;
-        }
-    }
-    return 0;
+    return compareParts(splitVersion(revision1), splitVersion(revision2));
 }
 
 bool PackageUtils::isRunnable(const QString package) {
@@ -247,9 +238,14 @@ bool PackageUtils::isRunnable(const QString package) {
 }
 
 void PackageUtils::run(const QString package) {
+    const std::string key = package.toStdString();
+    if (!m_cacheJson.contains(key) || !m_cacheJson[key].contains("desktop-file")) {
+        qDebug() << "No cached desktop file for" << package << "- call isRunnable() first";
+        return;
+    }
     QString prog = "/usr/bin/xdg-open";
     QStringList args;
-    args << QString::fromStdString(m_cacheJson[package.toStdString()]["desktop-file"].get<std::string>());
+    args << QString::fromStdString(m_cacheJson[key]["desktop-file"].get<std::string>());
     qint64 pid;
     if(QProcess::startDetached(prog, args, QString(), &pid)) {
         qDebug() << "Sucsessfully ran " << package << " with pid " << pid;

@@ -62,9 +62,17 @@ protected:
             path.arcTo(rect, 90, -(m_progress / 100.0) * 360);
             path.closeSubpath();
 
-            painter->setClipPath(path);
+            // ВАЖНО: painter в QtQuick1 (QGraphicsView/QDeclarativeItem) ОБЩИЙ для всей
+            // сцены; элемент обязан восстановить любое изменённое им состояние. Раньше
+            // здесь стоял setClipping(false) — он не возвращал исходный клип, а отключал
+            // отсечение целиком, портя отрисовку всего, что рисуется ПОСЛЕ (тулбар и
+            // системный статус-бар «пропадали», но оставались кликабельными). save()/
+            // restore() гарантированно возвращают клип; IntersectClip не даёт выйти за
+            // пределы текущего клипа даже на время отрисовки маски.
+            painter->save();
+            painter->setClipPath(path, Qt::IntersectClip);
             painter->drawPixmap(0, 0, maskPixmap);
-            painter->setClipping(false);
+            painter->restore();
         }
     }
 
@@ -75,20 +83,20 @@ private:
         int sizeValue = 24; // default tiny
         if (m_size == "tiny") {
             sizeValue = 24;
-            baseFile = ":/ProcessIndicatorAssets/base-24.png";
-            maskFile = ":/ProcessIndicatorAssets/mask-24.png";
+            baseFile = ":/assets/progressindicator/base-24.png";
+            maskFile = ":/assets/progressindicator/mask-24.png";
         } else if (m_size == "small") {
             sizeValue = 32;
-            baseFile = ":/ProcessIndicatorAssets/base-32.png";
-            maskFile = ":/ProcessIndicatorAssets/mask-32.png";
+            baseFile = ":/assets/progressindicator/base-32.png";
+            maskFile = ":/assets/progressindicator/mask-32.png";
         } else if (m_size == "medium") {
             sizeValue = 64;
-            baseFile = ":/ProcessIndicatorAssets/base-64.png";
-            maskFile = ":/ProcessIndicatorAssets/mask-64.png";
-        } else if (m_size == "big") {
+            baseFile = ":/assets/progressindicator/base-64.png";
+            maskFile = ":/assets/progressindicator/mask-64.png";
+        } else if (m_size == "big" || m_size == "large") { // ExtendedIndicator зовёт 96 как "large"
             sizeValue = 96;
-            baseFile = ":/ProcessIndicatorAssets/base-96.png";
-            maskFile = ":/ProcessIndicatorAssets/mask-96.png";
+            baseFile = ":/assets/progressindicator/base-96.png";
+            maskFile = ":/assets/progressindicator/mask-96.png";
         }
 
         basePixmap.load(baseFile);

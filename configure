@@ -1,0 +1,130 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+TARGET="${1:-}"
+
+if [[ $# -eq 0 ]]; then
+    echo "Usage: $0 <n9|simulator> [build_dir] [cmake_args...]" >&2
+    exit 1
+fi
+shift
+
+BUILD_DIR=""
+if [[ $# -gt 0 && ! "$1" =~ ^- ]]; then
+    BUILD_DIR="$1"
+    shift
+fi
+
+case "$TARGET" in
+    n9)
+        : "${BUILD_DIR:=${ROOT_DIR}/build-n9}"
+
+        TOOLCHAIN_ROOT="/opt/harmattan-gcc"
+        SYSROOT="/home/iarchep/QtSDK/Madde/sysroots/harmattan_sysroot_10.2011.34-1_slim"
+        QMAKE="/home/iarchep/QtSDK/Madde/targets/harmattan_10.2011.34-1_rt1.2/bin/qmake"
+        OLD_LD_DIR="/home/iarchep/QtSDK/Madde/toolchains/arm-2009q3-67-arm-none-linux-gnueabi-x86_64-unknown-linux-gnu/arm-2009q3-67/bin"
+        BUILD_TYPE="${BUILD_TYPE:-Release}"
+        CONAN_OUT="${BUILD_DIR}/conan"
+        PROFILES_DIR="${CONAN_OUT}/profiles"
+        BUILD_PROFILE_REF="default"
+        HOST_PROFILE="${PROFILES_DIR}/host.profile"
+
+        BIN="${TOOLCHAIN_ROOT}/bin"
+        CC="${BIN}/arm-none-linux-gnueabi-gcc"
+        CXX="${BIN}/arm-none-linux-gnueabi-g++"
+        AR="${BIN}/arm-none-linux-gnueabi-ar"
+        RANLIB="${BIN}/arm-none-linux-gnueabi-ranlib"
+        STRIP="${BIN}/arm-none-linux-gnueabi-strip"
+
+        for exe in "$CC" "$CXX" "$AR" "$RANLIB" "$STRIP" "$QMAKE"; do
+            if [[ ! -x "$exe" ]]; then
+                echo "Missing or non-executable: $exe" >&2; exit 1
+            fi
+        done
+        for dir in "$SYSROOT" "$OLD_LD_DIR"; do
+            if [[ ! -d "$dir" ]]; then
+                echo "Missing directory: $dir" >&2; exit 1
+            fi
+        done
+
+        mkdir -p "$PROFILES_DIR"
+        conan profile detect --force --name "$BUILD_PROFILE_REF"
+
+        cat > "$HOST_PROFILE" <<HOSTEOF
+[settings]
+os=Linux
+arch=armv7hf
+compiler=gcc
+compiler.version=14
+compiler.libcxx=libstdc++11
+build_type=${BUILD_TYPE}
+
+[conf]
+tools.build:sysroot=${SYSROOT}
+tools.build:compiler_executables={"c":"${CC}","cpp":"${CXX}","ar":"${AR}","ranlib":"${RANLIB}","strip":"${STRIP}"}
+HOSTEOF
+
+        conan install "$ROOT_DIR" \
+            --build=missing \
+            --profile:build="$BUILD_PROFILE_REF" \
+            --profile:host="$HOST_PROFILE" \
+            -of "$CONAN_OUT"
+
+        export PATH="$BIN:$PATH"
+        export PKG_CONFIG_SYSROOT_DIR="$SYSROOT"
+        export PKG_CONFIG_LIBDIR="$SYSROOT/usr/lib/pkgconfig:$SYSROOT/usr/share/pkgconfig"
+        export PKG_CONFIG_PATH="$PKG_CONFIG_LIBDIR"
+
+        CONAN_TOOLCHAIN_FILE="${CONAN_OUT}/build/${BUILD_TYPE}/generators/conan_toolchain.cmake"
+
+        cmake -S "$ROOT_DIR" -B "$BUILD_DIR" \
+            -G "Unix Makefiles" \
+            -DCMAKE_TOOLCHAIN_FILE="$CONAN_TOOLCHAIN_FILE" \
+            -DCMAKE_BUILD_TYPE="$BUILD_TYPE" \
+            -DCMAKE_SYSROOT="$SYSROOT" \
+            -DCMAKE_C_FLAGS="-B${OLD_LD_DIR}" \
+            -DCMAKE_CXX_FLAGS="-B${OLD_LD_DIR}" \
+            -DCMAKE_FIND_ROOT_PATH="$SYSROOT" \
+            -DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER \
+            -DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY \
+            -DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY \
+            -DCMAKE_FIND_ROOT_PATH_MODE_PACKAGE=ONLY \
+            -DQT_QMAKE_EXECUTABLE="$QMAKE" \
+            -DBUILD_N9=ON \
+            "$@"
+        ;;
+    simulator)
+        : "${BUILD_DIR:=${ROOT_DIR}/build-sim}"
+
+        BUILD_TYPE="${BUILD_TYPE:-Release}"
+        CONAN_OUT="${BUILD_DIR}/conan"
+        QMAKE="/home/iarchep/QtSDK/Simulator/Qt/gcc/bin/qmake"
+
+        if [[ ! -x "$QMAKE" ]]; then
+            echo "Missing Simulator qmake: $QMAKE" >&2; exit 1
+        fi
+
+        conan install "$ROOT_DIR" \
+            --build=missing \
+            -of "$CONAN_OUT"
+
+        CONAN_TOOLCHAIN_FILE="${CONAN_OUT}/build/${BUILD_TYPE}/generators/conan_toolchain.cmake"
+
+        cmake -S "$ROOT_DIR" -B "$BUILD_DIR" \
+            -G "Unix Makefiles" \
+            -DCMAKE_TOOLCHAIN_FILE="$CONAN_TOOLCHAIN_FILE" \
+            -DCMAKE_BUILD_TYPE="$BUILD_TYPE" \
+            -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
+            -DQT_QMAKE_EXECUTABLE="$QMAKE" \
+            -DBUILD_N9=OFF \
+            "$@"
+        ;;
+    *)
+        echo "Usage: $0 <n9|simulator> [build_dir] [cmake_args...]" >&2
+        exit 1
+        ;;
+esac
+
+echo "Configured ${TARGET} build in: ${BUILD_DIR}"
+echo "To build, run: make -C ${BUILD_DIR} -j\$(nproc)"

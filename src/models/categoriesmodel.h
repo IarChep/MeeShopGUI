@@ -44,9 +44,17 @@ public:
 
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;
 
-    Q_INVOKABLE QString getCatName(int index) { return QString::fromStdString(m_json.at(index)["name"].get<std::string>()); }
+    Q_INVOKABLE QString getCatName(int index) {
+        if (index < 0 || index >= static_cast<int>(m_json.size()))
+            return QString();
+        const json &c = m_json.at(index);
+        auto it = c.find("name");
+        return (it != c.end() && it->is_string())
+            ? QString::fromStdString(it->get<std::string>()) : QString();
+    }
     Q_INVOKABLE QString getCatName(QString tid) {
-        return m_nameCache[tid.toStdString()];
+        auto it = m_nameCache.find(tid.toStdString());
+        return it != m_nameCache.end() ? it->second : QString();
     }
     Q_INVOKABLE void toggleKids(const QString &categoryName);
 
@@ -62,7 +70,6 @@ private:
     void expandCategory(const QString &categoryName);
 
     QVariant getCategoryData(const json &category, int role) const;
-    json getCategoryByName(const QString &name) const;
     bool isChildCategory(const json &category) const;
 };
 }

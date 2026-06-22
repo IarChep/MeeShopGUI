@@ -1,3 +1,14 @@
+meeshop (0.8) unstable; urgency=low
+
+  * New home page: OpenRepos "Recently updated" feed and a "Top rated" carousel
+  * Developer pages: profile (avatar, name, signature) and the developer's apps
+  * Threaded app comments shown as message bubbles with avatars
+  * Installation queue with reordering and an installed-apps page
+  * Screenshots now open in the built-in system image viewer instead of a browser
+  * Network error dialog with Retry, plus assorted bug fixes and UI polish
+
+ -- IarChep <yarchepel@gmail.com>  Mon, 22 Jun 2026 09:24:29 +0000
+
 meeshop (0.0.2) unstable; urgency=low
 
   * Categories are fully implementes

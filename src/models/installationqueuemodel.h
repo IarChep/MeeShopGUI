@@ -1,60 +1,84 @@
-#ifndef MEESHOP_INSTALLATIONQUEUEMODEL_H
-#define MEESHOP_INSTALLATIONQUEUEMODEL_H
+#ifndef INSTALLATIONQUEUEMODEL_H
+#define INSTALLATIONQUEUEMODEL_H
 
-#include <QObject>
 #include <QAbstractListModel>
+#include <QList>
 #include <QString>
-#include <deque>
 #include <QHash>
-#include <QVariantMap>
+#include <QByteArray>
+
+#include "../tools/apt/aptlogmodel.h"
 
 namespace MeeShop {
 
-struct ApplicationInfo {
-    QString name;
-    QString package;
-    QString publisher;
-};
-
-struct InstallationStatus {
-    QString status = "Queued";
-    int progress = -1;
-
-    QVariantMap toMap() {
-        QVariantMap map;
-        map["status"] = this->status;
-        map["progress"] = this->progress;
-        return map;
-    }
-};
-
-class InstallationQueueModel : public QAbstractListModel
-{
+// Список приложений в очереди установки: минимальная инфа + живой статус,
+// прогресс и собственный лог apt у каждого элемента.
+class InstallationQueueModel : public QAbstractListModel {
     Q_OBJECT
+    Q_PROPERTY(int count READ count NOTIFY countChanged)
+    Q_PROPERTY(int activeCount READ activeCount NOTIFY activeCountChanged)
 public:
-    enum EntryRoles {
-        AppNameRole,
-        AppPackageRole,
-        AppPublisherRole
+    enum Roles {
+        AppIdRole = Qt::UserRole + 1,
+        NameRole,
+        DeveloperRole,
+        IconUrlRole,
+        OperationRole,
+        StatusRole,
+        ActionRole,
+        ProgressRole,
+        IndeterminateRole,
+        LogRole
     };
 
-    explicit InstallationQueueModel(QObject *parent, std::deque<std::pair<ApplicationInfo, InstallationStatus>>& queue) : QAbstractListModel(parent), m_queue(queue)
-    {
-        QHash<int, QByteArray> roles;
-        roles[AppNameRole] = "appName";
-        roles[AppPackageRole] = "appPackage";
-        roles[AppPublisherRole] = "appPublisher";
-        setRoleNames(roles);
-    }
+    struct Entry {
+        int appId;
+        QString name;
+        QString developer;
+        QString iconUrl;
+        QString packageName;
+        int operation;
+        int status;
+        QString action;
+        int progress;
+        bool indeterminate;
+        AptLogModel *log;
+    };
 
-    int rowCount(const QModelIndex & parent = QModelIndex()) const;
-    QVariant data(const QModelIndex & index, int role = Qt::DisplayRole) const;
+    explicit InstallationQueueModel(QObject *parent = 0);
+    ~InstallationQueueModel();
+
+    int count() const { return m_entries.size(); }
+    int activeCount() const;
+
+    int rowCount(const QModelIndex &parent = QModelIndex()) const;
+    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;
+
+    // --- API для контроллера (InstallationQueue) ---
+    int indexOfAppId(int appId) const;
+    Entry *at(int row) const;
+    Entry *byAppId(int appId) const;
+
+    int addEntry(int appId, const QString &name, const QString &developer,
+                 const QString &iconUrl, const QString &packageName, int operation);
+    void removeRow(int row);
+    void moveRow(int from, int to);
+
+    void setStatus(int row, int status);
+    void setAction(int row, const QString &action, bool indeterminate);
+    void setProgress(int row, int progress);
+
+signals:
+    void countChanged();
+    void activeCountChanged();
 
 private:
-    std::deque<std::pair<ApplicationInfo, InstallationStatus>>& m_queue;
+    static bool isActive(int status); // Queued или Running
+    void emitChanged(int row);
+
+    QList<Entry*> m_entries;
 };
 
-} // namespace MeeShop
-Q_DECLARE_METATYPE(MeeShop::InstallationQueueModel*)
+}
 
-#endif // MEESHOP_INSTALLATIONQUEUEMODEL_H
+#endif // INSTALLATIONQUEUEMODEL_H

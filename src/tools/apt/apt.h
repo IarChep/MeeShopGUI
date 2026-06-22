@@ -1,234 +1,144 @@
 #ifndef APT_H
 #define APT_H
-#include <regex>
-#include <unordered_map>
-#include <vector>
-#include <iostream>
-#include <string>
-#include <sstream>
-#include <thread>
-#include <mutex>
-#include "pseudoterminal.h"
+
 #include <QObject>
-#include <QDebug>
+#include <QString>
+#include <QStringList>
+#include <QLatin1Char>
 #include <unistd.h>
-#include <QtConcurrentRun>
 
-enum class AptEventType {
-    READING_PACKAGE_LISTS,
-    BUILDING_DEPENDENCY_TREE,
-    READING_STATE_INFO,
-    READING_DATABASE,
-    UNPACKING,
-    SETTING_UP,
-    DOWNLOADING,
-    HIT,
-    DONE,
-    REMOVING,
-    UNKNOWN
-};
+#include "pseudoterminal.h"
+#include "aptlogmodel.h"
+#include "aptparser.h"
 
-struct AptEvent {
-    AptEventType type = AptEventType::UNKNOWN;
-    std::string description;
-    int progress = -1;
-    std::string package_name;
-};
-
-
-struct PackageInfo {
-    int upgraded = 0;
-    int newly_installed = 0;
-    int to_remove = 0;
-    int not_upgraded = 0;
-    std::vector<std::string> additional_packages;
-    std::vector<std::string> suggested_packages;
-    std::vector<std::string> new_packages;
-};
-
+// Обёртка над apt-get: запускает операции и переводит вывод pty в Qt-сигналы.
+// Разбор каждой строки делегирован AptLineParser (универсальная таблица QRegExp,
+// см. aptparser.h): любая непустая строка либо попадает в статус/лог, либо явно
+// помечена как шум перерисовки. Фиксированных switch/contains-случаев больше нет.
 class AptTools : public QObject {
-
     Q_OBJECT
-
-private:
-    PseudoTerm pt;
-    std::string apt_executable;
-    std::string apt_out;
-    AptEvent current_event;
-
-
-    AptEventType identifyEvent(const std::string& line) {
-        if (line.find("Reading package lists...") != std::string::npos)
-            return AptEventType::READING_PACKAGE_LISTS;
-        if (line.find("Building dependency tree...") != std::string::npos)
-            return AptEventType::BUILDING_DEPENDENCY_TREE;
-        if (line.find("Reading state information...") != std::string::npos)
-            return AptEventType::READING_STATE_INFO;
-        if (line.find("Reading database ...") != std::string::npos)
-            return AptEventType::READING_DATABASE;
-        if (line.find("Unpacking ") != std::string::npos)
-            return AptEventType::UNPACKING;
-        if (line.find("Setting up ") != std::string::npos)
-            return AptEventType::SETTING_UP;
-        if (line.find("Get:") != std::string::npos || line.find("% [") != std::string::npos)
-            return AptEventType::DOWNLOADING;
-        if (line.find("Hit:") != std::string::npos)
-            return AptEventType::HIT;
-        if (line.find("Done") != std::string::npos)
-            return AptEventType::DONE;
-        if (line.find("Removing ") != std::string::npos)
-            return AptEventType::REMOVING;
-        return AptEventType::UNKNOWN;
-    }
-
-    int extractProgress(const std::string& line) {
-        std::regex progress_regex("(\\d+)%");
-        std::smatch match;
-        if (std::regex_search(line, match, progress_regex)) {
-            return std::stoi(match[1]);
-        }
-        return -1;
-    }
-
-    std::string extractPackageName(const std::string& line) {
-        std::regex package_regex("(Unpacking|Setting up|Removing) ([\\w-]+)");
-        std::smatch match;
-        if (std::regex_search(line, match, package_regex)) {
-            return match[2];
-        }
-        return "";
-    }
-
-    void processEventLine(const std::string& line, AptEventType event_type) {
-        int progress = extractProgress(line);
-        std::string package_name = extractPackageName(line);
-
-        if (event_type == AptEventType::DONE) {
-            if (current_event.type != AptEventType::UNKNOWN) {
-                current_event.progress = 100;
-                emit progressChanged(QString::fromStdString(getEventName(current_event.type)), 100);
-                current_event = AptEvent();
-            }
-            return;
-        }
-
-        if (current_event.type != event_type) {
-            current_event = AptEvent{
-                .type = event_type,
-                .description = line,
-                .progress = progress,
-                .package_name = package_name
-            };
-
-            emit actionChanged(QString::fromStdString(getEventName(event_type) + (package_name.empty() ? "" : " " + package_name)));
-        } else {
-            current_event.progress = progress;
-            current_event.package_name = package_name;
-        }
-
-        if (progress != -1) {
-            emit progressChanged(QString::fromStdString(getEventName(event_type)), progress);
-        }
-    }
-
-
-    std::string getEventName(AptEventType type) {
-        switch (type) {
-        case AptEventType::READING_PACKAGE_LISTS: return "Reading package lists";
-        case AptEventType::BUILDING_DEPENDENCY_TREE: return "Building dependency tree";
-        case AptEventType::READING_STATE_INFO: return "Reading state information";
-        case AptEventType::READING_DATABASE: return "Reading database";
-        case AptEventType::UNPACKING: return "Unpacking";
-        case AptEventType::SETTING_UP: return "Setting up";
-        case AptEventType::DOWNLOADING: return "Downloading";
-        case AptEventType::HIT: return "Hit repository";
-        case AptEventType::DONE: return "Done";
-        case AptEventType::REMOVING: return "Removing";
-        default: return "Unknown";
-        }
-    }
-
-    void setupPseudoTerminalCallbacks() {
-        pt.OnOutputReceived = [this](const std::string& out) {
-            processLine(out);
-        };
-        pt.OnProgramExited = [this](const int& code) {
-            qDebug() << "Apt exited with code" << code;
-            if (code != 0) {
-                emit errorOrWarning("Error", "APT command exited with code: " + QString::number(code) + "means" + strerror(code));
-            } else {
-                emit exited(code, QString::fromStdString(apt_out));
-            }
-        };
-        pt.OnProgramErrored = [this](const int& code) {
-            qDebug() << "Apt fucked up, that's why: " << code;
-            emit errorOrWarning("Error", "APT command exited with code: " + QString::number(code));
-        };
-    }
-
 public:
-    explicit AptTools(const std::string& apt_exe, QObject* parent = nullptr)
-        : QObject(parent), apt_executable(apt_exe) {
-        setupPseudoTerminalCallbacks();
+    explicit AptTools(const QString &executable, QObject *parent = 0)
+        : QObject(parent), m_executable(executable),
+          m_lastDeterminate(false), m_lastPercent(-1) {
+        connect(&m_pt, SIGNAL(lineRead(QString)), this, SLOT(onLine(QString)));
+        connect(&m_pt, SIGNAL(finished(int)),     this, SLOT(onFinished(int)));
+        connect(&m_pt, SIGNAL(failed(QString)),   this, SLOT(onFailed(QString)));
     }
 
-    void updateRepos() {
-        if (access(apt_executable.c_str(), X_OK) != 0) {
-            emit errorOrWarning("Error", "APT executable not found or not executable: " + QString::fromStdString(apt_executable));
-            return;
-        }
-        apt_out = "";
-        pt.run_command(apt_executable, {"update"});
-    }
+    bool isRunning() const { return m_pt.isRunning(); }
 
-    void installPackage(const std::string& package) {
-        if (access(apt_executable.c_str(), X_OK) != 0) {
-            qDebug() << "emiting error!";
-            emit errorOrWarning("Error", "APT executable not found or not executable: " + QString::fromStdString(apt_executable));
-            return;
-        }
-        apt_out = "";
-        pt.run_command(apt_executable, {"install", "-y", "--force-yes", package});
-    }
+    // Доступ к выводу: структурированная модель лога и сырой текст.
+    AptLogModel *log() { return &m_log; }
+    Q_INVOKABLE QString output() const { return m_output; }
 
-    void removePackage(const std::string& package) {
-        if (access(apt_executable.c_str(), X_OK) != 0) {
-            emit errorOrWarning("Error", "APT executable not found or not executable: " + QString::fromStdString(apt_executable));
-            return;
-        }
-        apt_out = "";
-        pt.run_command(apt_executable, {"remove", "-y", "--force-yes",  package});
-    }
-
-    void autoremovePurge() {
-        if (access(apt_executable.c_str(), X_OK) != 0) {
-            emit errorOrWarning("Error", "APT executable not found or not executable: " + QString::fromStdString(apt_executable));
-            return;
-        }
-        apt_out = "";
-        pt.run_command(apt_executable, {"autoremove", "--purge", "-y", "--force-yes",});
-    }
-
-    void processLine(const std::string& line) {
-        if (line.empty()) return;
-        apt_out += line + "\n";
-
-        AptEventType event_type = identifyEvent(line);
-        if (event_type != AptEventType::UNKNOWN) {
-            processEventLine(line, event_type);
-        } else if (line.find("E: ") != std::string::npos) {
-            emit errorOrWarning("Error", QString::fromStdString(line));
-        } else if (line.find("W: ") != std::string::npos) {
-            emit errorOrWarning("Warning", QString::fromStdString(line));
-        }
-    }
+public slots:
+    void update()                    { run(QStringList() << "update"); }
+    void install(const QString &pkg) { run(QStringList() << "install" << "-y" << "--force-yes" << pkg); }
+    void remove(const QString &pkg)  { run(QStringList() << "remove" << "-y" << "--force-yes" << pkg); }
+    void autoremovePurge()           { run(QStringList() << "autoremove" << "--purge" << "-y" << "--force-yes"); }
 
 signals:
-    void exited(int code, const QString& output);
+    // determinate=true -> определённый прогресс (бар); false -> неопределённый (спиннер).
+    // Заменяет прежний «нюх» по подстроке "Downloading" на стороне потребителя.
+    void actionChanged(const QString &action, bool determinate);
+    void progress(const QString &action, int percent);
+    void warning(const QString &message);
+    void error(const QString &message);
+    void finished(int exitCode, const QString &output);
+    // Каждая записанная строка лога с уровнем (AptLogModel::Level) — для
+    // маршрутизации в per-app логи очереди установки.
+    void logLine(int level, const QString &message);
 
-    void progressChanged(const QString& action, int progress);
-    void actionChanged(const QString& action);
-    void errorOrWarning(const QString& type, const QString& message);
+private slots:
+    void onLine(const QString &line) {
+        if (line.isEmpty())
+            return;
+        m_output += line;
+        m_output += QLatin1Char('\n');
+
+        const AptLineResult r = m_parser.parse(line);
+        if (r.drop)
+            return; // единственное место тихого отбрасывания (шум перерисовки)
+
+        // (A) Статус: actionChanged только при смене метки ИЛИ определённости —
+        // иначе кадры перерисовки прогресса дёргали бы dataChanged без нужды.
+        if (r.updatesAction && (r.action != m_lastAction || r.determinate != m_lastDeterminate)) {
+            m_lastAction = r.action;
+            m_lastDeterminate = r.determinate;
+            m_lastPercent = -1; // новая фаза -> её первый процент всегда отправить
+            emit actionChanged(r.action, r.determinate);
+        }
+
+        // (B) Процент: без спама статуса, только при изменении значения.
+        if (r.hasPercent && r.percent != m_lastPercent) {
+            m_lastPercent = r.percent;
+            emit progress(m_lastAction, r.percent);
+        }
+
+        // (C) Лог: чистая метка для распознанных правил, сырая строка для
+        // catch-all/ошибок (useWholeLine). Захватываем всё, кроме явного шума.
+        if (r.loggable)
+            addLog(r.level, r.action);
+    }
+
+    void onFinished(int code) {
+        if (code != 0)
+            addLog(AptLogModel::Error, QString::fromLatin1("apt exited with code %1").arg(code));
+        emit finished(code, m_output);
+    }
+
+    void onFailed(const QString &message) {
+        // Сообщаем об ошибке и обязательно завершаем, чтобы UI не завис.
+        addLog(AptLogModel::Error, message);
+        emit error(message);
+        emit finished(-1, m_output);
+    }
+
+private:
+    void run(const QStringList &args) {
+        if (m_pt.isRunning()) {
+            emit error(QString::fromLatin1("Another APT operation is already running"));
+            return;
+        }
+        m_output.clear();
+        m_log.clear();
+        // Сброс состояния дедупликации статуса/прогресса, чтобы первая строка
+        // нового шага (напр. install после update) всегда дала сигнал.
+        m_lastAction.clear();
+        m_lastDeterminate = false;
+        m_lastPercent = -1;
+
+        if (access(m_executable.toLocal8Bit().constData(), X_OK) != 0) {
+            const QString msg = QString::fromLatin1("APT executable not found or not executable: ") + m_executable;
+            addLog(AptLogModel::Error, msg);
+            emit error(msg);
+            emit finished(-1, msg);
+            return;
+        }
+        if (!m_pt.start(m_executable, args)) {
+            const QString msg = QString::fromLatin1("Failed to start APT");
+            addLog(AptLogModel::Error, msg);
+            emit error(msg);
+            emit finished(-1, m_output);
+        }
+    }
+
+    // Пишет строку в модель лога и дублирует её сигналом для per-app логов.
+    void addLog(AptLogModel::Level level, const QString &message) {
+        m_log.append(level, message);
+        emit logLine(int(level), message);
+    }
+
+    QString m_executable;
+    QString m_output;
+    AptLogModel m_log;
+    PseudoTerm m_pt;
+
+    AptLineParser m_parser;       // универсальный разбор строк (aptparser.h)
+    QString m_lastAction;         // дедуп: последняя отправленная метка статуса
+    bool m_lastDeterminate;       // дедуп: последняя отправленная определённость
+    int m_lastPercent;            // дедуп: последний отправленный процент
 };
 
-#endif
+#endif // APT_H

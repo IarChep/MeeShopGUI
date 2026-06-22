@@ -1,0 +1,12 @@
+# Build directories
+/build*/
+
+# Debian package artifacts
+*.deb
+*.changes
+
+# CMake user presets
+CMakeUserPresets.json
+
+# Claude
+.claude/

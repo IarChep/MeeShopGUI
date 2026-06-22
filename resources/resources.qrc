@@ -1,29 +1,57 @@
 <RCC>
     <qresource prefix="/">
-        <file>qml/Pages/AppsPage.qml</file>
-        <file>qml/Pages/HomePage.qml</file>
-        <file>qml/Pages/RssPage.qml</file>
-        <file>qml/Components/AppDelegate.qml</file>
-        <file>qml/Components/Header.qml</file>
-        <file>qml/Components/UIConstants.js</file>
+        <!-- entry point -->
         <file>qml/main.qml</file>
-        <file>qml/Components/CategoryDelegate.qml</file>
-        <file>images/headerImage.png</file>
-        <file>qml/Components/CategoriesSheet.qml</file>
-        <file>qml/Components/Waiter.qml</file>
-        <file>qml/Components/TextCollapsible.qml</file>
-        <file>ProcessIndicatorAssets/mask-96.png</file>
-        <file>ProcessIndicatorAssets/mask-64.png</file>
-        <file>ProcessIndicatorAssets/mask-32.png</file>
-        <file>ProcessIndicatorAssets/mask-24.png</file>
-        <file>ProcessIndicatorAssets/base-96.png</file>
-        <file>ProcessIndicatorAssets/base-64.png</file>
-        <file>ProcessIndicatorAssets/base-32.png</file>
-        <file>ProcessIndicatorAssets/base-24.png</file>
-        <file>qml/Components/SectionHeader.qml</file>
-        <file>qml/Pages/AppPage.qml</file>
-        <file>qml/Components/ExtendedIndicator.qml</file>
-        <file>qml/Components/LoadMoreRectangle.qml</file>
-        <file>images/icon-like.png</file>
+
+        <!-- pages -->
+        <file>qml/pages/AppPage.qml</file>
+        <file>qml/pages/AppsPage.qml</file>
+        <file>qml/pages/DeveloperPage.qml</file>
+        <file>qml/pages/HomePage.qml</file>
+        <file>qml/pages/InstallationQueuePage.qml</file>
+        <file>qml/pages/InstalledAppsPage.qml</file>
+        <file>qml/pages/RssPage.qml</file>
+        <file>qml/pages/TestQueuePage.qml</file>
+
+        <!-- components: delegates -->
+        <file>qml/components/delegates/AppDelegate.qml</file>
+        <file>qml/components/delegates/CategoryDelegate.qml</file>
+        <file>qml/components/delegates/InstalledAppDelegate.qml</file>
+        <file>qml/components/delegates/QueueDelegate.qml</file>
+
+        <!-- components: generic ui -->
+        <file>qml/components/ui/ExtendedIndicator.qml</file>
+        <file>qml/components/ui/FallbackImage.qml</file>
+        <file>qml/components/ui/LoadMoreRectangle.qml</file>
+        <file>qml/components/ui/SectionHeader.qml</file>
+        <file>qml/components/ui/SectionScrollDecorator.qml</file>
+        <file>qml/components/ui/TextCollapsible.qml</file>
+        <file>qml/components/ui/Waiter.qml</file>
+
+        <!-- components: header -->
+        <file>qml/components/header/Header.qml</file>
+        <file>qml/components/header/HeaderBar.qml</file>
+
+        <!-- components: sheets -->
+        <file>qml/components/sheets/AptLogSheet.qml</file>
+        <file>qml/components/sheets/CategoriesSheet.qml</file>
+
+        <!-- components: views -->
+        <file>qml/components/views/QueueListView.qml</file>
+
+        <!-- shared js -->
+        <file>qml/js/UIConstants.js</file>
+
+        <!-- assets -->
+        <file>assets/images/headerImage.png</file>
+        <file>assets/images/icon-like.png</file>
+        <file>assets/progressindicator/base-24.png</file>
+        <file>assets/progressindicator/base-32.png</file>
+        <file>assets/progressindicator/base-64.png</file>
+        <file>assets/progressindicator/base-96.png</file>
+        <file>assets/progressindicator/mask-24.png</file>
+        <file>assets/progressindicator/mask-32.png</file>
+        <file>assets/progressindicator/mask-64.png</file>
+        <file>assets/progressindicator/mask-96.png</file>
     </qresource>
 </RCC>

@@ -14,6 +14,55 @@ find_package(nlohmann_json REQUIRED)
 find_package(Threads REQUIRED)
 find_package(PkgConfig REQUIRED)
 
+# ---------------------------------------------------------------------------
+# libpng12 — only for the simulator (host) build.
+#
+# The host Qt4 simulator libraries (libQtGui.so) are linked against libpng12
+# and reference versioned symbols (png_*@PNG12_0). Those versioned symbols are
+# produced ONLY by libpng's autotools build (-Wl,--version-script=libpng.vers),
+# not by its bundled CMake build. Modern hosts ship only libpng16, so we fetch
+# the official libpng12 sources and build them with their own autotools.
+#
+# The N9 target links libpng12 from the device sysroot, so this is skipped there.
+# ---------------------------------------------------------------------------
+if (NOT BUILD_N9)
+    include(FetchContent)
+    include(ExternalProject)
+
+    # Fetch the sources only. The bundled CMakeLists is too old to use and would
+    # not version the symbols anyway, so SOURCE_SUBDIR points at a non-existent
+    # directory to stop FetchContent_MakeAvailable() from calling add_subdirectory().
+    FetchContent_Declare(
+        libpng12_src
+        GIT_REPOSITORY https://github.com/pnggroup/libpng.git
+        GIT_TAG        libpng12
+        GIT_SHALLOW    TRUE
+        SOURCE_SUBDIR  autotools-only-no-cmake
+    )
+    FetchContent_MakeAvailable(libpng12_src)
+
+    set(LIBPNG12_INSTALL ${CMAKE_BINARY_DIR}/libpng12-install)
+    set(LIBPNG12_SO ${LIBPNG12_INSTALL}/lib/libpng12.so)
+
+    # Build libpng12 with its own autotools so we get the PNG12_0 version script.
+    ExternalProject_Add(libpng12_build
+        SOURCE_DIR        ${libpng12_src_SOURCE_DIR}
+        CONFIGURE_COMMAND ${libpng12_src_SOURCE_DIR}/configure
+                          --prefix=${LIBPNG12_INSTALL}
+                          --enable-shared --disable-static
+                          --disable-dependency-tracking
+        BUILD_COMMAND     make
+        INSTALL_COMMAND   make install
+        BUILD_BYPRODUCTS  ${LIBPNG12_SO}
+    )
+
+    file(MAKE_DIRECTORY ${LIBPNG12_INSTALL}/include)
+    add_library(png12 SHARED IMPORTED GLOBAL)
+    set_target_properties(png12 PROPERTIES
+        IMPORTED_LOCATION             ${LIBPNG12_SO}
+        INTERFACE_INCLUDE_DIRECTORIES ${LIBPNG12_INSTALL}/include)
+endif()
+
 file(GLOB_RECURSE SOURCES "src/*.cpp")
 file(GLOB_RECURSE HEADERS "src/*.h")
 
@@ -26,6 +75,14 @@ add_executable(meeshop ${SOURCES} ${HEADERS} ${RESOURCES})
 set_target_properties(meeshop PROPERTIES AUTOMOC ON AUTORCC ON)
 
 target_link_libraries(meeshop PRIVATE Qt4::QtCore Qt4::QtDBus Qt4::QtGui Qt4::QtDeclarative Qt4::QtNetwork Qt4::QtSvg nlohmann_json::nlohmann_json Threads::Threads X11::X11 util)
+
+if (NOT BUILD_N9)
+    # png12 must follow the Qt libs on the link line so it resolves libQtGui's
+    # png_*@PNG12_0 references. Built before meeshop links via the dependency.
+    target_link_libraries(meeshop PRIVATE png12)
+    add_dependencies(meeshop libpng12_build)
+    set_target_properties(meeshop PROPERTIES BUILD_RPATH ${LIBPNG12_INSTALL}/lib)
+endif()
 
 if (BUILD_N9)
     pkg_check_modules(boostable ${CMAKE_SYSROOT}/usr/lib/pkgconfig/qdeclarative-boostable.pc REQUIRED)
@@ -41,10 +98,10 @@ if (BUILD_N9)
         COMMENT "Copying debian directory"
     )
 
-    install(FILES resources/meeshop_harmattan.desktop DESTINATION /usr/share/applications)
-    install(FILES resources/meeshop80.png DESTINATION /usr/share/icons/hicolor/80x80/apps)
-    install(FILES resources/meeshop-splash.png DESTINATION /opt/meeshop/share)
-    install(FILES resources/openrepos.key DESTINATION /opt/meeshop)
+    install(FILES resources/packaging/meeshop_harmattan.desktop DESTINATION /usr/share/applications)
+    install(FILES resources/packaging/meeshop80.png DESTINATION /usr/share/icons/hicolor/80x80/apps)
+    install(FILES resources/packaging/meeshop-splash.png DESTINATION /opt/meeshop/share)
+    install(FILES resources/packaging/openrepos.key DESTINATION /opt/meeshop)
 
     install(TARGETS meeshop DESTINATION /opt/meeshop/bin)
 
